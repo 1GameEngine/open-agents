@@ -23,6 +23,7 @@ import { formatTodosForContext, formatScratchpadForContext } from "./state";
 import type { TodoItem, ScratchpadEntry } from "./types";
 import { todoItemSchema } from "./types";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
+import { addCacheControlToMessages } from "./utils";
 
 const callOptionsSchema = z.object({
   workingDirectory: z.string().optional(),
@@ -64,6 +65,10 @@ export const deepAgent = new ToolLoopAgent({
   },
   stopWhen: stepCountIs(50),
   callOptionsSchema,
+  prepareStep: ({ messages, ...rest }) => ({
+    ...rest,
+    messages: addCacheControlToMessages(messages),
+  }),
   prepareCall: ({ options, ...settings }) => {
     const workingDirectory = options?.workingDirectory ?? process.cwd();
     const customInstructions = options?.customInstructions;
@@ -76,11 +81,17 @@ export const deepAgent = new ToolLoopAgent({
 
     return {
       ...settings,
-      instructions: buildSystemPrompt({
-        customInstructions,
-        todosContext,
-        scratchpadContext,
-      }),
+      instructions: {
+        role: "system",
+        content: buildSystemPrompt({
+          customInstructions,
+          todosContext,
+          scratchpadContext,
+        }),
+        providerOptions: {
+          anthropic: { cacheControl: { type: "ephemeral" } },
+        },
+      },
       experimental_context: { workingDirectory },
     };
   },

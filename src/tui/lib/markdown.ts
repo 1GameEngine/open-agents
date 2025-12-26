@@ -15,16 +15,16 @@ marked.use({
           language: lang || undefined,
           ignoreIllegals: true,
         });
-        return highlighted + "\n";
+        return highlighted + "\n\n";
       } catch {
         // Fallback to plain yellow if highlighting fails
-        return chalk.yellow(text) + "\n";
+        return chalk.yellow(text) + "\n\n";
       }
     },
 
     blockquote(this: any, { tokens }: Tokens.Blockquote): string {
       const text = this.parser.parse(tokens);
-      return chalk.gray("│ ") + text.trim().split("\n").join("\n│ ") + "\n";
+      return chalk.gray("│ ") + text.trim().split("\n").join("\n│ ") + "\n\n";
     },
 
     heading(this: any, { tokens, depth }: Tokens.Heading): string {
@@ -34,7 +34,7 @@ marked.use({
     },
 
     hr(): string {
-      return chalk.dim("─".repeat(40)) + "\n";
+      return chalk.dim("─".repeat(40)) + "\n\n";
     },
 
     list(this: any, { items, ordered }: Tokens.List): string {
@@ -45,7 +45,7 @@ marked.use({
             const text = this.parser.parse(item.tokens).trim();
             return `${bullet} ${text}`;
           })
-          .join("\n") + "\n"
+          .join("\n") + "\n\n"
       );
     },
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Text } from "ink";
+import { renderMarkdown } from "../lib/markdown";
 
 type TextOutputProps = {
   text: string;
@@ -20,8 +21,8 @@ export function TextOutput({ text, reasoning, showReasoning = false }: TextOutpu
       {text && (
         <Box>
           <Text>
-            <Text color="white">● </Text>
-            {text}
+            <Text color="white">●</Text>
+            {renderMarkdown(text)}
           </Text>
         </Box>
       )}

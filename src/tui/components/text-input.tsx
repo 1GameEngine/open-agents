@@ -6,6 +6,14 @@ type TextInputProps = {
   value: string;
   onChange: (value: string) => void;
   onSubmit?: (value: string) => void;
+  onCursorChange?: (position: number) => void;
+  cursorPosition?: number;
+  onUpArrow?: () => boolean | void;
+  onDownArrow?: () => boolean | void;
+  onTab?: () => boolean | void;
+  onCtrlN?: () => boolean | void;
+  onCtrlP?: () => boolean | void;
+  onReturn?: () => boolean | void;
   placeholder?: string;
   focus?: boolean;
   showCursor?: boolean;
@@ -36,6 +44,14 @@ export function TextInput({
   value: originalValue,
   onChange,
   onSubmit,
+  onCursorChange,
+  cursorPosition: externalCursorPosition,
+  onUpArrow,
+  onDownArrow,
+  onTab,
+  onCtrlN,
+  onCtrlP,
+  onReturn,
   placeholder = "",
   focus = true,
   showCursor = true
@@ -46,6 +62,17 @@ export function TextInput({
   });
 
   const { cursorOffset, cursorWidth } = state;
+
+  // Sync with external cursor position when provided
+  useEffect(() => {
+    if (externalCursorPosition !== undefined) {
+      setState((prev) => ({
+        ...prev,
+        cursorOffset: Math.min(externalCursorPosition, (originalValue || "").length),
+        cursorWidth: 0
+      }));
+    }
+  }, [externalCursorPosition, originalValue]);
 
   useEffect(() => {
     setState((previousState) => {
@@ -93,18 +120,47 @@ export function TextInput({
 
   useInput(
     (input, key) => {
+      // Handle up arrow - let parent intercept if needed
+      if (key.upArrow) {
+        if (onUpArrow?.()) return;
+        return; // Still block if no handler
+      }
+
+      // Handle down arrow - let parent intercept if needed
+      if (key.downArrow) {
+        if (onDownArrow?.()) return;
+        return; // Still block if no handler
+      }
+
+      // Handle tab - let parent intercept if needed
+      if (key.tab && !key.shift) {
+        if (onTab?.()) return;
+        return; // Still block if no handler
+      }
+
+      // Handle Ctrl+N - let parent intercept if needed
+      if (key.ctrl && input === "n") {
+        if (onCtrlN?.()) return;
+        // Don't block - allow default behavior if not handled
+      }
+
+      // Handle Ctrl+P - let parent intercept if needed
+      if (key.ctrl && input === "p") {
+        if (onCtrlP?.()) return;
+        // Don't block - allow default behavior if not handled
+      }
+
       // Ignore certain key combinations
       if (
-        key.upArrow ||
-        key.downArrow ||
         (key.ctrl && input === "c") ||
-        key.tab ||
         (key.shift && key.tab)
       ) {
         return;
       }
 
       if (key.return) {
+        // Let parent intercept return (e.g., for autocomplete)
+        if (onReturn?.()) return;
         if (onSubmit) {
           onSubmit(originalValue);
         }
@@ -208,8 +264,15 @@ export function TextInput({
         cursorWidth: nextCursorWidth
       });
 
+      // Notify parent of cursor position change
+      if (nextCursorOffset !== cursorOffset) {
+        onCursorChange?.(nextCursorOffset);
+      }
+
       if (nextValue !== originalValue) {
         onChange(nextValue);
+        // Also notify of cursor change when value changes
+        onCursorChange?.(nextCursorOffset);
       }
     },
     { isActive: focus }

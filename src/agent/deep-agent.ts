@@ -65,8 +65,7 @@ export const deepAgent = new ToolLoopAgent({
   },
   stopWhen: stepCountIs(50),
   callOptionsSchema,
-  prepareStep: ({ messages, model, ...rest }) => ({
-    ...rest,
+  prepareStep: ({ messages, model }) => ({
     messages: addCacheControlToMessages(messages, model),
   }),
   prepareCall: ({ options, model, ...settings }) => {

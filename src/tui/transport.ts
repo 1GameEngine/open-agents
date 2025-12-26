@@ -1,4 +1,4 @@
-import { type ChatTransport, convertToModelMessages } from "ai";
+import { type ChatTransport, convertToModelMessages, smoothStream } from "ai";
 import type { TUIAgent, TUIAgentCallOptions, TUIAgentUIMessage } from "./types";
 
 export type AgentTransportOptions = {
@@ -18,6 +18,7 @@ export function createAgentTransport({
         messages: modelMessages,
         options: agentOptions,
         abortSignal: abortSignal ?? undefined,
+        experimental_transform: smoothStream(),
       });
 
       return result.toUIMessageStream();

@@ -6,12 +6,7 @@ import {
 } from "ai";
 import { nanoid } from "nanoid";
 import { webAgent } from "@/app/config";
-import type { WebAgentUIMessage } from "@/app/types";
 import {
-  createChatMessageIfNotExists,
-  isFirstChatMessage,
-  touchChat,
-  updateChat,
   updateChatAssistantActivity,
   updateSession,
   upsertChatMessageScoped,
@@ -25,6 +20,7 @@ import {
   requireAuthenticatedUser,
   requireOwnedSessionChat,
 } from "./_lib/chat-context";
+import { scheduleLatestMessagePersistence } from "./_lib/message-persistence";
 import { handleChatStreamFinish } from "./_lib/post-finish";
 import { parseChatRequestBody, requireChatIdentifiers } from "./_lib/request";
 import { createChatRuntime } from "./_lib/runtime";
@@ -78,28 +74,8 @@ export async function POST(req: Request) {
     throw new Error("Sandbox not initialized");
   }
 
-  // Refresh lifecycle activity timestamps immediately so that any running
-  // lifecycle workflow sees that the sandbox is in active use. Without this,
-  // a long-running AI response could cause the sandbox to appear idle and
-  // get hibernated mid-request.
   const requestStartedAt = new Date();
   const requestStartedAtMs = requestStartedAt.getTime();
-  await updateSession(sessionId, {
-    ...buildActiveLifecycleUpdate(sessionRecord.sandboxState, {
-      activityAt: requestStartedAt,
-    }),
-  });
-
-  const modelMessages = await convertToModelMessages(messages, {
-    ignoreIncompleteToolCalls: true,
-    tools: webAgent.tools,
-  });
-
-  const { sandbox, skills } = await createChatRuntime({
-    userId,
-    sessionId,
-    sessionRecord,
-  });
 
   const ownedStreamToken = createStreamToken(requestStartedAtMs);
   const clearOwnedStreamToken = createOwnedStreamTokenClearer(
@@ -107,68 +83,41 @@ export async function POST(req: Request) {
     ownedStreamToken,
   );
 
-  let pendingAssistantSnapshot: WebAgentUIMessage | null = null;
-
-  // Save the latest incoming user message immediately (incremental persistence).
+  // Save the latest incoming user message in the background.
   // Assistant snapshots are persisted after stream ownership is atomically claimed.
-  if (messages.length > 0) {
-    const latestMessage = messages[messages.length - 1];
-    if (
-      latestMessage &&
-      (latestMessage.role === "user" || latestMessage.role === "assistant") &&
-      typeof latestMessage.id === "string" &&
-      latestMessage.id.length > 0
-    ) {
-      try {
-        if (latestMessage.role === "user") {
-          const createdUserMessage = await createChatMessageIfNotExists({
-            id: latestMessage.id,
-            chatId,
-            role: "user",
-            parts: latestMessage,
-          });
+  const pendingAssistantSnapshot = scheduleLatestMessagePersistence(
+    chatId,
+    messages,
+  );
 
-          if (createdUserMessage) {
-            await touchChat(chatId);
-          }
+  // Refresh lifecycle activity so long-running responses don't look idle.
+  // Keep this synchronous so lifecycle workers see activity before generation starts.
+  await updateSession(sessionId, {
+    ...buildActiveLifecycleUpdate(sessionRecord.sandboxState, {
+      activityAt: requestStartedAt,
+    }),
+  });
 
-          // Update chat title to first 30 chars of user's first message
-          const shouldSetTitle =
-            createdUserMessage !== undefined &&
-            (await isFirstChatMessage(chatId, createdUserMessage.id));
-
-          if (shouldSetTitle) {
-            // This is the first message - extract text content for the title
-            const textContent = latestMessage.parts
-              .filter(
-                (part): part is { type: "text"; text: string } =>
-                  part.type === "text",
-              )
-              .map((part) => part.text)
-              .join(" ")
-              .trim();
-
-            if (textContent.length > 0) {
-              const title =
-                textContent.length > 30
-                  ? `${textContent.slice(0, 30)}...`
-                  : textContent;
-              await updateChat(chatId, { title });
-            }
-          }
-        } else {
-          pendingAssistantSnapshot = latestMessage;
-        }
-      } catch (error) {
-        console.error("Failed to save latest chat message:", error);
-      }
-    }
-  }
-
-  const preferences = await getUserPreferences(userId).catch((error) => {
+  const modelMessagesPromise = convertToModelMessages(messages, {
+    ignoreIncompleteToolCalls: true,
+    tools: webAgent.tools,
+  });
+  const runtimePromise = createChatRuntime({
+    userId,
+    sessionId,
+    sessionRecord,
+  });
+  const preferencesPromise = getUserPreferences(userId).catch((error) => {
     console.error("Failed to load user preferences:", error);
     return null;
   });
+
+  const [modelMessages, { sandbox, skills }, preferences] = await Promise.all([
+    modelMessagesPromise,
+    runtimePromise,
+    preferencesPromise,
+  ]);
+
   const modelVariants = preferences?.modelVariants ?? [];
 
   // Resolve model from chat's modelId, supporting variant IDs.

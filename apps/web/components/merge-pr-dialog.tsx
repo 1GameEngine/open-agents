@@ -328,41 +328,49 @@ export function MergePrDialog({
           />
 
           {nonBypassableReasons.length > 0 && (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500" />
-                    <p className="text-sm font-medium text-foreground">
-                      Merge blocked
+            <div className="relative overflow-hidden rounded-md border border-border bg-muted/40">
+              <div className="absolute inset-y-0 left-0 w-1 bg-amber-500 dark:bg-amber-400" />
+              <div className="space-y-3 py-3 pr-3 pl-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <p className="text-sm font-medium text-foreground">
+                    Merge blocked
+                  </p>
+                </div>
+                <div className="space-y-1.5 pl-6">
+                  {nonBypassableReasons.map((reason) => (
+                    <p
+                      key={reason}
+                      className="text-[13px] leading-snug text-muted-foreground"
+                    >
+                      {reason}
                     </p>
-                  </div>
-                  <ul className="ml-6 list-disc space-y-1 text-xs text-muted-foreground">
-                    {nonBypassableReasons.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
+                  ))}
                   {hasMergeConflicts && (
-                    <p className="ml-6 text-xs text-muted-foreground">
-                      Fetch {baseBranchRef}, resolve the conflicts, and avoid
-                      rebasing.
+                    <p className="text-xs leading-relaxed text-muted-foreground/80">
+                      Fetch{" "}
+                      <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground/70">
+                        {baseBranchRef}
+                      </code>
+                      , resolve the conflicts, and avoid rebasing.
                     </p>
                   )}
                 </div>
                 {hasMergeConflicts && onFixConflicts && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0"
-                    disabled={isAgentWorking}
-                    onClick={() => {
-                      void onFixConflicts(baseBranchRef);
-                    }}
-                  >
-                    <Sparkles className="mr-2 h-3.5 w-3.5" />
-                    Fix conflicts
-                  </Button>
+                  <div className="pl-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isAgentWorking}
+                      onClick={() => {
+                        void onFixConflicts(baseBranchRef);
+                      }}
+                    >
+                      <Sparkles className="mr-2 h-3.5 w-3.5" />
+                      Fix conflicts
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>

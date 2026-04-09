@@ -58,6 +58,7 @@ export function ChatTabs({ activeChatId }: ChatTabsProps) {
   const handleNewChat = () => {
     const { chat } = createChat();
     switchChat(chat.id);
+    setActiveView("chat");
     // Scroll to the rightmost tab after the new chat is added
     requestAnimationFrame(() => {
       scrollContainerRef.current?.scrollTo({

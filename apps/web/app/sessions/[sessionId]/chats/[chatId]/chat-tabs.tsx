@@ -195,7 +195,7 @@ export function ChatTabs({ activeChatId }: ChatTabsProps) {
                           setRenamingChatId(null);
                         }
                       }}
-                      className="mx-1 my-1.5 max-w-[140px] rounded border border-border bg-background px-2 py-0.5 text-sm font-medium outline-none focus:ring-1 focus:ring-ring"
+                      className="max-w-[140px] border-none bg-transparent px-3 py-2 text-sm font-medium outline-none ring-1 ring-ring"
                       autoFocus
                     />
                   ) : (

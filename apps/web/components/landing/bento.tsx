@@ -43,9 +43,9 @@ function mark(index: number) {
   if (index === 1) {
     return (
       <div className="flex items-center gap-1.5" aria-hidden="true">
-        <span className="h-px w-4 bg-(--l-fg-4)" />
-        <span className="h-px w-6 bg-(--l-fg-4)" />
-        <span className="h-px w-3 bg-(--l-fg-4)" />
+        <span className="h-px w-4 bg-(--l-fg-2)" />
+        <span className="h-px w-6 bg-(--l-fg-2)" />
+        <span className="h-px w-3 bg-(--l-fg-2)" />
       </div>
     );
   }
@@ -80,7 +80,7 @@ export function LandingBento() {
             </h2>
           </div>
           <div className="md:pt-2">
-            <p className="max-w-md text-pretty text-base leading-relaxed text-(--l-fg-4)">
+            <p className="max-w-md text-pretty text-base leading-relaxed text-(--l-fg-2)">
               Built on production-grade primitives from the Vercel ecosystem. No
               synthetic demos &mdash; real infrastructure for real agents.
             </p>
@@ -109,7 +109,7 @@ export function LandingBento() {
               <h3 className="mt-7 text-balance text-2xl font-semibold tracking-tighter">
                 {item.title}
               </h3>
-              <p className="mt-4 flex-1 text-pretty text-sm leading-relaxed text-(--l-fg-4)">
+              <p className="mt-4 flex-1 text-pretty text-sm leading-relaxed text-(--l-fg-2)">
                 {item.body}
               </p>
             </article>

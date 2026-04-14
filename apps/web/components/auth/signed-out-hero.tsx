@@ -28,7 +28,7 @@ export function SignedOutHero() {
                 Open Agents.
               </h1>
               <p
-                className="landing-fade-up mt-4 text-base leading-relaxed text-(--l-fg-2) sm:mt-6 sm:text-lg sm:text-(--l-fg-3)"
+                className="landing-fade-up mt-4 text-balance text-base leading-relaxed text-(--l-fg-2) sm:mt-6 sm:text-lg"
                 style={{ animationDelay: "90ms" }}
               >
                 Spawn coding agents that run infinitely in the cloud. Powered by
@@ -45,7 +45,7 @@ export function SignedOutHero() {
                 href="https://github.com/vercel-labs/open-harness"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[13px] text-(--l-fg-4) transition-colors hover:text-(--l-fg-2)"
+                className="flex items-center gap-1.5 text-[13px] text-(--l-fg-2) transition-colors hover:text-(--l-fg-2)"
               >
                 <GitHubIcon />
                 Open Source

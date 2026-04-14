@@ -6,10 +6,10 @@ export function LandingFooter() {
       <div className="mx-auto max-w-[1320px] border-t border-(--l-border) px-6 py-14 md:py-18">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-4)">
+            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-2)">
               Open Agents
             </div>
-            <div className="mt-3 text-sm text-(--l-fg-3)">
+            <div className="mt-3 text-sm text-(--l-fg-2)">
               Open Agents for
               <br />
               shipping code.
@@ -17,7 +17,7 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-4)">
+            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-2)">
               Product
             </div>
             <div className="mt-4 flex flex-col gap-2">
@@ -25,7 +25,7 @@ export function LandingFooter() {
                 href="https://ai-sdk.dev/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="font-mono text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 AI SDK
               </a>
@@ -33,7 +33,7 @@ export function LandingFooter() {
                 href="https://vercel.com/ai-gateway"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="font-mono text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 AI Gateway
               </a>
@@ -41,7 +41,7 @@ export function LandingFooter() {
                 href="https://vercel.com/sandbox"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="font-mono text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 Sandbox
               </a>
@@ -49,7 +49,7 @@ export function LandingFooter() {
                 href="https://useworkflow.dev/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="font-mono text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 Workflow SDK
               </a>
@@ -57,7 +57,7 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-4)">
+            <div className="font-mono text-xs uppercase tracking-widest text-(--l-fg-2)">
               Links
             </div>
             <div className="mt-4 flex flex-col gap-2">
@@ -65,7 +65,7 @@ export function LandingFooter() {
                 href="https://github.com/vercel-labs/open-harness"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 GitHub
               </a>
@@ -73,7 +73,7 @@ export function LandingFooter() {
                 href="https://vercel.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 Vercel
               </a>
@@ -81,7 +81,7 @@ export function LandingFooter() {
                 href="https://ai-sdk.dev/docs/introduction"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+                className="text-sm text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
               >
                 AI SDK Docs
               </a>
@@ -94,7 +94,7 @@ export function LandingFooter() {
             href="https://vercel.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-(--l-fg-4) transition-colors hover:text-(--l-fg-2)"
+            className="text-(--l-fg-2) transition-colors hover:text-(--l-fg-2)"
           >
             <svg
               viewBox="0 0 76 65"

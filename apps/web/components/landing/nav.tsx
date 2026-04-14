@@ -54,7 +54,7 @@ export function LandingNav() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
-              className="inline-flex size-9 items-center justify-center text-(--l-fg-3) transition-colors hover:text-(--l-fg)"
+              className="inline-flex size-9 items-center justify-center text-(--l-fg-2) transition-colors hover:text-(--l-fg)"
             >
               <svg
                 viewBox="0 0 24 24"

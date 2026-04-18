@@ -1,59 +1,10 @@
-import { getVercelProjectLinkByRepo } from "@/lib/db/vercel-project-links";
-import { requireApiKey } from "@/lib/auth/api-key";
-import { listMatchingVercelProjects } from "@/lib/vercel/projects";
-import { getUserVercelToken } from "@/lib/vercel/token";
-
-export async function GET(req: Request) {
-  const authResult = await requireApiKey();
-  if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
-
-  const { searchParams } = new URL(req.url);
-  const repoOwner = searchParams.get("repoOwner")?.trim();
-  const repoName = searchParams.get("repoName")?.trim();
-
-  if (!repoOwner || !repoName) {
-    return Response.json(
-      { error: "Missing repoOwner or repoName" },
-      { status: 400 },
-    );
-  }
-
-  const token = await getUserVercelToken(session.user.id);
-  if (!token) {
-    return Response.json(
-      { error: "Connect Vercel to load matching projects" },
-      { status: 403 },
-    );
-  }
-
-  try {
-    const [savedLink, projects] = await Promise.all([
-      getVercelProjectLinkByRepo(session.user.id, repoOwner, repoName),
-      listMatchingVercelProjects({
-        token,
-        repoOwner,
-        repoName,
-      }),
-    ]);
-
-    const selectedProjectId =
-      savedLink &&
-      projects.some((project) => project.projectId === savedLink.projectId)
-        ? savedLink.projectId
-        : projects.length === 1
-          ? (projects[0]?.projectId ?? null)
-          : null;
-
-    return Response.json({
-      projects,
-      selectedProjectId,
-    });
-  } catch (error) {
-    console.error("Failed to load Vercel repo projects:", error);
-    return Response.json(
-      { error: "Failed to load Vercel projects" },
-      { status: 500 },
-    );
-  }
+/**
+ * Vercel project listing — removed in self-hosted mode.
+ * Vercel project integration is not available in self-hosted deployments.
+ */
+export async function GET(): Promise<Response> {
+  return Response.json(
+    { error: "Vercel project integration is not available in self-hosted mode." },
+    { status: 410 },
+  );
 }

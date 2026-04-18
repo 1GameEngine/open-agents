@@ -1,5 +1,3 @@
-import { checkBotId } from "botid/server";
-import { botIdConfig } from "@/lib/botid";
 import { gateway, generateText } from "ai";
 import { z } from "zod";
 import { getServerSession } from "@/lib/session/get-server-session";
@@ -45,12 +43,6 @@ export async function POST(req: Request) {
   if (!session?.user) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
   }
-
-  const botVerification = await checkBotId(botIdConfig);
-  if (botVerification.isBot) {
-    return Response.json({ error: "Access denied" }, { status: 403 });
-  }
-
   let body: unknown;
   try {
     body = await req.json();

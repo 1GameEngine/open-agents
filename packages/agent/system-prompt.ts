@@ -69,7 +69,6 @@ Goal: Get just enough context to act, then stop exploring.
 Run independent operations in parallel:
 - Multiple file reads
 - Multiple grep/glob searches
-- Independent bash commands (read-only)
 
 Serialize when there are dependencies:
 - Read before edit
@@ -84,14 +83,6 @@ Serialize when there are dependencies:
 - \`edit\` - Make precise string replacements in files.
 - \`grep\` - Search file contents with regex. Use instead of bash grep/rg.
 - \`glob\` - Find files by pattern.
-
-## Shell
-- \`bash\` - Run shell commands. Use for:
-  - Project commands (tests, builds, linters)
-  - Git commands when requested
-  - Shell utilities where no dedicated tool exists
-- Prefer specialized tools (\`read\`, \`edit\`, \`grep\`, \`glob\`) over bash equivalents (\`cat\`, \`sed\`, \`grep\`)
-- Commands run in the working directory by default -- do NOT prefix commands with \`cd <working_directory> &&\`. Use the \`cwd\` parameter only when you need a different directory.
 
 ## Planning
 - \`todo_write\` - Create/update task list. Use FREQUENTLY to plan and track progress.
@@ -269,8 +260,6 @@ const GEMINI_OVERLAY = `
 Keep text output to fewer than 3 lines (excluding tool use and code generation) whenever practical. Get straight to the action or answer. No preamble ("Okay, I will now...") or postamble ("I have finished the changes...").
 
 When making code changes, do not provide summaries unless the user asks. Finish the work and stop.
-
-Before executing bash commands that modify the file system, provide a brief explanation of the command's purpose and potential impact.
 
 IMPORTANT: You are an agent -- keep going until the user's query is completely resolved. Do not stop early or hand control back prematurely.`;
 

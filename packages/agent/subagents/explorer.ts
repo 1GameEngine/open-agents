@@ -1,7 +1,6 @@
 import type { LanguageModel } from "ai";
 import { gateway, stepCountIs, ToolLoopAgent } from "ai";
 import { z } from "zod";
-import { bashTool } from "../tools/bash";
 import { globTool } from "../tools/glob";
 import { grepTool } from "../tools/grep";
 import { readFileTool } from "../tools/read";
@@ -27,7 +26,6 @@ This is a READ-ONLY exploration task. You are STRICTLY PROHIBITED from:
 - Creating new files (no file creation of any kind)
 - Modifying existing files (no edits)
 - Deleting files
-- Running commands that change system state
 
 Your role is EXCLUSIVELY to search and analyze existing code.
 
@@ -44,7 +42,7 @@ Example final response:
 
 ## TOOLS & GUIDELINES
 
-You have access to: read, grep, glob, bash (read-only commands only)
+You have access to: read, grep, glob
 
 **Strengths:**
 - Rapidly finding files using glob patterns
@@ -55,9 +53,6 @@ You have access to: read, grep, glob, bash (read-only commands only)
 - Use glob for broad file pattern matching
 - Use grep for searching file contents with regex
 - Use read when you know the specific file path
-- Use bash ONLY for read-only operations (ls, git status, git log, git diff, find)
-- All bash commands automatically run in the working directory — NEVER prepend \`cd <working-directory> &&\` or similar to commands
-- NEVER use bash for: mkdir, touch, rm, cp, mv, git add, git commit, npm install, or any file creation/modification
 - Return workspace-relative file paths in your final response (e.g., "src/index.ts:42")`;
 
 const callOptionsSchema = z.object({
@@ -80,7 +75,6 @@ export const explorerSubagent = new ToolLoopAgent({
     read: readFileTool(),
     grep: grepTool(),
     glob: globTool(),
-    bash: bashTool(),
   },
   stopWhen: stepCountIs(SUBAGENT_STEP_LIMIT),
   callOptionsSchema,

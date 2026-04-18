@@ -29,7 +29,7 @@ import {
   getSessionSandboxName,
   hasResumableSandboxState,
 } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 // import { buildDevelopmentDotenvFromVercelProject } from "@/lib/vercel/projects";
 // import { getUserVercelToken } from "@/lib/vercel/token";
 
@@ -117,10 +117,9 @@ export async function POST(req: Request) {
   const { repoUrl, branch = "main", isNewBranch = false, sessionId } = body;
 
   // Get session for auth
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   const githubToken = await getUserGitHubToken(session.user.id);
 
   if (repoUrl) {

@@ -1,6 +1,6 @@
 import { experimental_transcribe as transcribe } from "ai";
 import { elevenlabs } from "@ai-sdk/elevenlabs";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 interface TranscribeRequestBody {
   audio: string; // base64-encoded audio data
@@ -8,10 +8,9 @@ interface TranscribeRequestBody {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   let body: TranscribeRequestBody;
   try {
     body = (await req.json()) as TranscribeRequestBody;

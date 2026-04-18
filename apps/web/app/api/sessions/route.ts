@@ -17,7 +17,7 @@ import {
   isValidGitHubRepoOwner,
 } from "@/lib/github/repo-identifiers";
 import { getRandomCityName } from "@/lib/random-city";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import {
   isManagedTemplateTrialUser,
   MANAGED_TEMPLATE_TRIAL_SESSION_LIMIT,
@@ -88,10 +88,9 @@ function parseNonNegativeInteger(value: string | null): number | null {
 }
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   const { searchParams } = new URL(req.url);
   const rawStatus = searchParams.get("status");
@@ -167,10 +166,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   if (isManagedTemplateTrialUser(session, req.url)) {
     const existingSessionCount = await countSessionsByUserId(session.user.id);

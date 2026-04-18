@@ -4,7 +4,7 @@ import { getInstallationsByUserId } from "@/lib/db/installations";
 import { isGitHubAppConfigured } from "@/lib/github/app-auth";
 import { getInstallationManageUrl } from "@/lib/github/installation-url";
 import { getUserGitHubToken } from "@/lib/github/user-token";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 interface GitHubOrg {
   id: number;
@@ -46,7 +46,9 @@ export interface ConnectionStatusResponse {
 }
 
 export async function GET() {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }

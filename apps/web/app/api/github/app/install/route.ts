@@ -4,7 +4,7 @@ import { getGitHubAccount } from "@/lib/db/accounts";
 import { getInstallationsByUserId } from "@/lib/db/installations";
 import { decrypt } from "@/lib/crypto";
 import { syncUserInstallations } from "@/lib/github/installations-sync";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 function sanitizeRedirectTo(rawRedirectTo: string | null): string {
   if (!rawRedirectTo) {
@@ -54,7 +54,9 @@ function redirectWithInstallCookies(
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   const redirectTo = sanitizeRedirectTo(req.nextUrl.searchParams.get("next"));
 

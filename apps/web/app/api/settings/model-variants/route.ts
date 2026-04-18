@@ -19,7 +19,7 @@ import {
   isRestrictedModelIdForSession,
   MANAGED_TEMPLATE_TRIAL_MODEL_ACCESS_ERROR,
 } from "@/lib/model-access";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 const PROVIDER_OPTIONS_MAX_BYTES = 16 * 1024;
 
@@ -43,7 +43,9 @@ function jsonError(error: string, status: number) {
 }
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -59,7 +61,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -114,7 +118,9 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -187,7 +193,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }

@@ -2,7 +2,7 @@ import { connectSandbox } from "@open-harness/sandbox";
 import { gateway, generateText } from "ai";
 import { getSessionById } from "@/lib/db/sessions";
 import { isSandboxActive } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 export const maxDuration = 30;
 
@@ -10,10 +10,9 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   const { sessionId } = await params;
   const dbSession = await getSessionById(sessionId);
   if (!dbSession || dbSession.userId !== session.user.id) {

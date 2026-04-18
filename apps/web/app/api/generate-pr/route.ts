@@ -18,7 +18,7 @@ import { generatePullRequestContentFromSandbox } from "@/lib/git/pr-content";
 import { getUserGitHubToken } from "@/lib/github/user-token";
 import { getAppCoAuthorTrailer } from "@/lib/github/app-auth";
 import { isSandboxActive } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 // Allow up to 2 minutes for AI generation and git operations
 export const maxDuration = 120;
@@ -37,10 +37,9 @@ interface GeneratePRRequest {
 
 export async function POST(req: Request) {
   // 1. Validate session
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   // 2. Parse request
   let body: GeneratePRRequest;
   try {

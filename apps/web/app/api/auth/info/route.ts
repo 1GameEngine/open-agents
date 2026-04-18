@@ -1,96 +1,35 @@
-import { cookies } from "next/headers";
+/**
+ * GET /api/auth/info
+ *
+ * Returns the authenticated user's info based on the API key in the
+ * Authorization header. In self-hosted mode there is no OAuth provider,
+ * so Vercel reconnect fields are always false.
+ */
 import type { NextRequest } from "next/server";
+import { requireApiKey } from "@/lib/auth/api-key";
 import { getGitHubAccount } from "@/lib/db/accounts";
 import { getInstallationsByUserId } from "@/lib/db/installations";
 import { userExists } from "@/lib/db/users";
-import { SESSION_COOKIE_NAME } from "@/lib/session/constants";
-import { getSessionFromReq } from "@/lib/session/server";
 import type { SessionUserInfo } from "@/lib/session/types";
-import { getUserVercelToken } from "@/lib/vercel/token";
 
 const UNAUTHENTICATED: SessionUserInfo = { user: undefined };
-const VERCEL_USERINFO_URL = "https://api.vercel.com/login/oauth/userinfo";
-const VERCEL_USERINFO_TIMEOUT_MS = 3_000;
 
-async function requiresVercelReconnect(userId: string): Promise<boolean> {
-  const token = await getUserVercelToken(userId);
-  if (!token) {
-    return true;
+export async function GET(_req: NextRequest) {
+  const auth = await requireApiKey();
+  if (!auth.ok) {
+    return Response.json(UNAUTHENTICATED, { status: 401 });
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(
-    () => controller.abort(),
-    VERCEL_USERINFO_TIMEOUT_MS,
-  );
+  const userId = auth.userId;
 
-  try {
-    const response = await fetch(VERCEL_USERINFO_URL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      cache: "no-store",
-      signal: controller.signal,
-    });
+  const [exists, ghAccount, installations] = await Promise.all([
+    userExists(userId),
+    getGitHubAccount(userId),
+    getInstallationsByUserId(userId),
+  ]);
 
-    if (response.ok) {
-      return false;
-    }
-
-    if (
-      response.status === 400 ||
-      response.status === 401 ||
-      response.status === 403
-    ) {
-      return true;
-    }
-
-    console.error(
-      `Failed to validate Vercel connection status: ${response.status} ${response.statusText}`,
-    );
-    return false;
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      console.error("Timed out validating Vercel connection status");
-      return false;
-    }
-
-    console.error("Failed to validate Vercel connection status:", error);
-    return false;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromReq(req);
-
-  if (!session?.user?.id) {
-    return Response.json(UNAUTHENTICATED);
-  }
-
-  const vercelReconnectPromise =
-    session.authProvider === "vercel"
-      ? requiresVercelReconnect(session.user.id)
-      : Promise.resolve(false);
-
-  // Run the user-existence check in parallel with the connection queries
-  // so there is zero added latency on the happy path.
-  const [exists, ghAccount, installations, vercelReconnectRequired] =
-    await Promise.all([
-      userExists(session.user.id),
-      getGitHubAccount(session.user.id),
-      getInstallationsByUserId(session.user.id),
-      vercelReconnectPromise,
-    ]);
-
-  // The session cookie (JWE) is self-contained and can outlive the user record.
-  // If the user no longer exists, clear the stale cookie.
   if (!exists) {
-    const store = await cookies();
-    store.delete(SESSION_COOKIE_NAME);
-    return Response.json(UNAUTHENTICATED);
+    return Response.json(UNAUTHENTICATED, { status: 401 });
   }
 
   const hasGitHubAccount = ghAccount !== null;
@@ -98,12 +37,17 @@ export async function GET(req: NextRequest) {
   const hasGitHub = hasGitHubAccount || hasGitHubInstallations;
 
   const data: SessionUserInfo = {
-    user: session.user,
-    authProvider: session.authProvider,
+    user: {
+      id: userId,
+      username: auth.username,
+      email: undefined,
+      avatar: "",
+    },
+    authProvider: "github",
     hasGitHub,
     hasGitHubAccount,
     hasGitHubInstallations,
-    vercelReconnectRequired,
+    vercelReconnectRequired: false,
   };
 
   return Response.json(data);

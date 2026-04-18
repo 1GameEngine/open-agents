@@ -1,4 +1,4 @@
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import {
   getUserPreferences,
   type DiffMode,
@@ -26,10 +26,9 @@ interface UpdatePreferencesRequest {
 }
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   const preferences = sanitizeUserPreferencesForSession(
     await getUserPreferences(session.user.id),
@@ -40,10 +39,9 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   let body: UpdatePreferencesRequest;
   try {

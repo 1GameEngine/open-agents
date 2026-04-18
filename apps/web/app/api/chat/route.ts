@@ -21,7 +21,7 @@ import {
 import { getAllVariants } from "@/lib/model-variants";
 import { createCancelableReadableStream } from "@/lib/chat/create-cancelable-readable-stream";
 import { assistantFileLinkPrompt } from "@/lib/assistant-file-links";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import {
   isManagedTemplateTrialUser,
   MANAGED_TEMPLATE_TRIAL_MESSAGE_LIMIT,
@@ -60,7 +60,9 @@ export async function POST(req: Request) {
     return authResult.response;
   }
   const userId = authResult.userId;
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   const parsedBody = await parseChatRequestBody(req);
   if (!parsedBody.ok) {
     return parsedBody.response;

@@ -11,7 +11,7 @@ import {
   isManagedTemplateTrialUser,
   MANAGED_TEMPLATE_TRIAL_DELETE_MESSAGE_ERROR,
 } from "@/lib/managed-template-trial";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 type RouteContext = {
   params: Promise<{ sessionId: string; chatId: string; messageId: string }>;
@@ -23,7 +23,9 @@ export async function DELETE(req: Request, context: RouteContext) {
     return authResult.response;
   }
 
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
   const { sessionId, chatId, messageId } = await context.params;
 
   const chatContext = await requireOwnedSessionChat({

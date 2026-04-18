@@ -1,13 +1,12 @@
 import { getVercelProjectLinkByRepo } from "@/lib/db/vercel-project-links";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import { listMatchingVercelProjects } from "@/lib/vercel/projects";
 import { getUserVercelToken } from "@/lib/vercel/token";
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { user: { id: authResult.userId, username: authResult.username } };
 
   const { searchParams } = new URL(req.url);
   const repoOwner = searchParams.get("repoOwner")?.trim();

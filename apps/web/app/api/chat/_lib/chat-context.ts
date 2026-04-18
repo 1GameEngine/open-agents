@@ -13,6 +13,8 @@ type AuthenticatedUserResult =
   | {
       ok: true;
       userId: string;
+      username: string;
+      authProvider: "api-key";
     }
   | {
       ok: false;

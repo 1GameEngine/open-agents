@@ -238,14 +238,9 @@ export async function GET(_req: Request, context: RouteContext) {
 }
 
 export async function POST(req: Request, context: RouteContext) {
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
-
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   if (isManagedTemplateTrialUser(session, req.url)) {
     return Response.json(
       { error: MANAGED_TEMPLATE_TRIAL_CODE_EDITOR_ERROR },

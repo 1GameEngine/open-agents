@@ -165,13 +165,8 @@ export class LocalFsSandbox implements Sandbox {
     options: { withFileTypes: true },
   ): Promise<Dirent[]> {
     const resolved = resolveAndGuard(this.sandboxDir, dirPath);
-    const entries = await fs.readdir(resolved, options);
-    return entries.map((e) => ({
-      name: e.name,
-      isFile: () => e.isFile(),
-      isDirectory: () => e.isDirectory(),
-      isSymbolicLink: () => e.isSymbolicLink(),
-    }));
+    // fs.Dirent satisfies the Dirent interface exported from ../interface
+    return fs.readdir(resolved, options) as Promise<Dirent[]>;
   }
 
   // ─── exec: intentionally not supported ───────────────────────────────────

@@ -23,7 +23,7 @@ export async function GET(
 ) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);
@@ -45,7 +45,7 @@ export async function PATCH(
 ) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);
@@ -124,7 +124,7 @@ export async function DELETE(
 ) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);

@@ -9,6 +9,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import * as path from "path";
 import * as fs from "fs/promises";
+import type { Dirent } from "fs";
 import { getSandbox, toDisplayPath } from "./utils";
 
 interface FileInfo {
@@ -55,7 +56,7 @@ async function walkDir(
 ): Promise<FileInfo[]> {
   const results: FileInfo[] = [];
 
-  let entries: fs.Dirent[];
+  let entries: Dirent[];
   try {
     entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {

@@ -5,6 +5,8 @@ export interface ApiKeyAuthResult {
   ok: true;
   userId: string;
   username: string;
+  /** Always 'api-key' in self-hosted mode. */
+  authProvider: "api-key";
 }
 
 export interface ApiKeyAuthFailure {
@@ -56,5 +58,5 @@ export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
     };
   }
 
-  return { ok: true, userId: result.userId, username: result.username };
+  return { ok: true, userId: result.userId, username: result.username, authProvider: "api-key" as const };
 }

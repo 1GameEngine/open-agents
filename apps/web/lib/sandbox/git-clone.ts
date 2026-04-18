@@ -130,8 +130,8 @@ export async function cloneRepoToSandbox(
 
 function buildGitEnv(
   githubToken?: string,
-): Record<string, string> {
-  const env: Record<string, string> = {
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {
     ...process.env,
     GIT_TERMINAL_PROMPT: "0",
   };

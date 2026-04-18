@@ -78,7 +78,7 @@ function parseNonNegativeInteger(value: string | null): number | null {
 export async function GET(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { searchParams } = new URL(req.url);
   const rawStatus = searchParams.get("status");
@@ -156,7 +156,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   if (isManagedTemplateTrialUser(session, req.url)) {
     const existingSessionCount = await countSessionsByUserId(session.user.id);
@@ -225,7 +225,7 @@ export async function POST(req: Request) {
 
   let finalBranch = branch;
   if (isNewBranch) {
-    finalBranch = generateBranchName(session.user.username, session.user.name);
+    finalBranch = generateBranchName(session.user.username, null);
   }
 
   try {
@@ -266,8 +266,8 @@ export async function POST(req: Request) {
           ? effectiveAutoCreatePr
           : false,
         globalSkillRefs: preferences.globalSkillRefs,
-        // Self-hosted mode always uses local-fs sandbox
-        sandboxState: { type: "local-fs" },
+        // Self-hosted mode: sandbox is provisioned lazily via POST /api/sandbox
+        sandboxState: null,
         lifecycleState: "provisioning",
         lifecycleVersion: 0,
       },

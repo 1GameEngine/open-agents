@@ -6,7 +6,7 @@ import { fetchGitHubUser } from "@/lib/github/api";
 export async function GET() {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   if (!session?.user?.id) {
     return NextResponse.json(

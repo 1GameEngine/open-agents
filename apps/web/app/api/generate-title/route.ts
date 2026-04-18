@@ -41,7 +41,7 @@ const generateTitleRequestSchema = z.object({
 export async function POST(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   let body: unknown;
   try {
     body = await req.json();

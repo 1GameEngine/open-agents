@@ -8,6 +8,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import * as path from "path";
 import * as fs from "fs/promises";
+import type { Dirent } from "fs";
 import { getSandbox, toDisplayPath } from "./utils";
 
 /** Convert a simple glob pattern (e.g. "*.ts") to a RegExp */
@@ -22,7 +23,7 @@ function globToRegex(glob: string): RegExp {
 /** Recursively collect all files under a directory, skipping hidden dirs and node_modules */
 async function collectFiles(dir: string): Promise<string[]> {
   const results: string[] = [];
-  let entries: fs.Dirent[];
+  let entries: Dirent[];
   try {
     entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {

@@ -29,7 +29,6 @@ import {
 } from "@/lib/managed-template-trial";
 import { buildActiveLifecycleUpdate } from "@/lib/sandbox/lifecycle";
 import {
-  requireAuthenticatedUser,
   requireOwnedSessionChat,
 } from "./_lib/chat-context";
 import { resolveChatModelSelection } from "./_lib/model-selection";
@@ -55,14 +54,10 @@ function getLatestUserMessage(messages: WebAgentUIMessage[]) {
 
 export async function POST(req: Request) {
   // 1. Validate session
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
-  const userId = authResult.userId;
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const userId = authResult.userId;
   const parsedBody = await parseChatRequestBody(req);
   if (!parsedBody.ok) {
     return parsedBody.response;

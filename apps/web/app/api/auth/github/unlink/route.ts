@@ -7,7 +7,7 @@ import { requireApiKey } from "@/lib/auth/api-key";
 export async function POST(): Promise<Response> {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
   }

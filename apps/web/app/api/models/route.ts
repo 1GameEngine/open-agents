@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   try {
     const models = await fetchAvailableLanguageModelsWithContext();
     // In self-hosted mode there are no managed-template restrictions.
-    const session = { user: { id: authResult.userId } };
+    const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
     return Response.json(
       { models: filterModelsForSession(models, session, req.url) },

@@ -26,7 +26,6 @@ import {
 import type { WebAgentUIToolPart } from "@/app/types";
 import { DEFAULT_WORKING_DIRECTORY } from "@/lib/sandbox/config";
 import { ToolLayout } from "../tool-layout";
-import { BashRenderer } from "./bash-renderer";
 import { ReadRenderer } from "./read-renderer";
 import { WriteRenderer } from "./write-renderer";
 import { EditRenderer } from "./edit-renderer";
@@ -275,8 +274,6 @@ function SubagentToolCall({ part }: { part: WebAgentUIToolPart }) {
   const cwd = DEFAULT_WORKING_DIRECTORY;
 
   switch (part.type) {
-    case "tool-bash":
-      return <BashRenderer part={part} state={state} />;
     case "tool-read":
       return <ReadRenderer part={part} state={state} cwd={cwd} />;
     case "tool-write":

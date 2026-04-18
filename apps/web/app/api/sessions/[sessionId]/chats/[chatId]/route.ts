@@ -34,14 +34,9 @@ export interface ChatRefreshResponse {
 }
 
 export async function GET(req: Request, context: RouteContext) {
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
-
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   const { sessionId, chatId } = await context.params;
 
   const chatContext = await requireOwnedSessionChat({
@@ -79,14 +74,9 @@ export async function GET(req: Request, context: RouteContext) {
 }
 
 export async function PATCH(req: Request, context: RouteContext) {
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
-
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   const { sessionId, chatId } = await context.params;
 
   const chatContext = await requireOwnedSessionChat({

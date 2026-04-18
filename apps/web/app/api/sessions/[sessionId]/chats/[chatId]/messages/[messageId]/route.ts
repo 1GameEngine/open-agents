@@ -18,14 +18,9 @@ type RouteContext = {
 };
 
 export async function DELETE(req: Request, context: RouteContext) {
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
-
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { user: { id: authResult.userId, username: authResult.username } };
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   const { sessionId, chatId, messageId } = await context.params;
 
   const chatContext = await requireOwnedSessionChat({

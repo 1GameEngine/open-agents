@@ -2,6 +2,7 @@ import type { Sandbox, SandboxHooks } from "./interface";
 import type { SandboxStatus } from "./types";
 import { connectVercel } from "./vercel/connect";
 import type { VercelState } from "./vercel/state";
+import { connectLocalFsSandbox, type LocalFsState } from "./local-fs";
 
 // Re-export SandboxStatus from types for convenience
 export type { SandboxStatus };
@@ -9,8 +10,13 @@ export type { SandboxStatus };
 /**
  * Unified sandbox state type.
  * Use `type` discriminator to determine which sandbox implementation to use.
+ *
+ * - "vercel"   — Vercel cloud sandbox (original implementation)
+ * - "local-fs" — Self-hosted local filesystem sandbox (no exec, file isolation only)
  */
-export type SandboxState = { type: "vercel" } & VercelState;
+export type SandboxState =
+  | ({ type: "vercel" } & VercelState)
+  | ({ type: "local-fs" } & LocalFsState);
 
 /**
  * Base connect options for all sandbox types.
@@ -48,12 +54,13 @@ export interface ConnectOptions {
  * Configuration for connecting to a sandbox.
  */
 export type SandboxConnectConfig = {
-  state: { type: "vercel" } & VercelState;
+  state: SandboxState;
   options?: ConnectOptions;
 };
 
 /**
  * Connect to a sandbox based on the provided configuration.
+ * Dispatches to the correct implementation based on state.type.
  */
 export async function connectSandbox(
   configOrState: SandboxConnectConfig | SandboxState,
@@ -65,11 +72,18 @@ export async function connectSandbox(
     typeof configOrState.state === "object" &&
     "type" in configOrState.state;
 
-  if (isNewApi) {
-    const config = configOrState as SandboxConnectConfig;
-    return connectVercel(config.state, config.options);
+  const state: SandboxState = isNewApi
+    ? (configOrState as SandboxConnectConfig).state
+    : (configOrState as SandboxState);
+
+  const options = isNewApi
+    ? (configOrState as SandboxConnectConfig).options
+    : legacyOptions;
+
+  if (state.type === "local-fs") {
+    return connectLocalFsSandbox(state);
   }
 
-  const state = configOrState as SandboxState;
-  return connectVercel(state, legacyOptions);
+  // Default: Vercel cloud sandbox
+  return connectVercel(state, options);
 }

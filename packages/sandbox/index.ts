@@ -28,3 +28,11 @@ export {
   type VercelSandboxConnectConfig,
   type VercelState,
 } from "./vercel";
+
+// local-fs (self-hosted)
+export {
+  LocalFsSandbox,
+  createLocalFsSandbox,
+  connectLocalFsSandbox,
+  type LocalFsState,
+} from "./local-fs";

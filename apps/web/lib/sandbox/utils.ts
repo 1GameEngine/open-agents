@@ -5,6 +5,20 @@ function hasNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+function getSandboxType(state: unknown): string | undefined {
+  if (!state || typeof state !== "object") return undefined;
+  const t = (state as { type?: unknown }).type;
+  return typeof t === "string" ? t : undefined;
+}
+
+/**
+ * Returns true if the state represents a local-fs sandbox.
+ * local-fs sandboxes are always considered "active" (no expiry concept).
+ */
+function isLocalFsState(state: unknown): boolean {
+  return getSandboxType(state) === "local-fs";
+}
+
 function getSandboxExpiresAt(state: unknown): number | undefined {
   if (!state || typeof state !== "object") {
     return undefined;
@@ -41,6 +55,11 @@ export function getResumableSandboxName(state: unknown): string | null {
 }
 
 export function hasResumableSandboxState(state: unknown): boolean {
+  // local-fs sandboxes are always resumable (identified by sandboxDir)
+  if (isLocalFsState(state)) {
+    const s = state as { sandboxDir?: unknown };
+    return hasNonEmptyString(s.sandboxDir);
+  }
   return getResumableSandboxName(state) !== null;
 }
 
@@ -50,11 +69,17 @@ export function hasPausedSandboxState(state: unknown): boolean {
 
 /**
  * Type guard to check if a sandbox is active and ready to accept operations.
+ * local-fs sandboxes are always active (no expiry).
  */
 export function isSandboxActive(
   state: SandboxState | null | undefined,
 ): state is SandboxState {
   if (!state) return false;
+
+  // local-fs sandboxes are always active
+  if (isLocalFsState(state)) {
+    return hasResumableSandboxState(state);
+  }
 
   const expiresAt = getSandboxExpiresAt(state);
   if (expiresAt === undefined) {
@@ -75,6 +100,8 @@ export function canOperateOnSandbox(
   state: SandboxState | null | undefined,
 ): state is SandboxState {
   if (!state) return false;
+  // local-fs sandboxes can always be operated on
+  if (isLocalFsState(state)) return hasResumableSandboxState(state);
   return hasRuntimeState(state);
 }
 
@@ -83,6 +110,9 @@ export function canOperateOnSandbox(
  */
 export function hasRuntimeSandboxState(state: unknown): boolean {
   if (!state || typeof state !== "object") return false;
+
+  // local-fs sandboxes always have runtime state
+  if (isLocalFsState(state)) return hasResumableSandboxState(state);
 
   const expiresAt = getSandboxExpiresAt(state);
   if (expiresAt === undefined) {
@@ -126,11 +156,15 @@ function hasRuntimeState(state: SandboxState): boolean {
 
 /**
  * Clear sandbox runtime state while preserving durable resume state when available.
+ * For local-fs sandboxes, the state is always preserved (no expiry to clear).
  */
 export function clearSandboxState(
   state: SandboxState | null | undefined,
 ): SandboxState | null {
   if (!state) return null;
+
+  // local-fs: preserve full state (sandboxDir is the resume handle)
+  if (isLocalFsState(state)) return state;
 
   const sandboxName = getPersistentSandboxName(state);
   const sandboxId = sandboxName ? null : getLegacySandboxId(state);

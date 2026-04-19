@@ -44,8 +44,12 @@ mock.module("ai", () => ({
 
 mock.module("server-only", () => ({}));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = currentSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 const routeModulePromise = import("./route");
@@ -60,7 +64,7 @@ describe("/api/models context window enrichment", () => {
     requestedUrls.length = 0;
     gatewayError = null;
     modelsDevApiData = {};
-    currentSession = null;
+    currentSession = { user: { id: "user-1", username: "test-user" } };
 
     globalThis.fetch = mock((input: RequestInfo | URL, _init?: RequestInit) => {
       requestedUrls.push(getRequestUrl(input));
@@ -133,7 +137,7 @@ describe("/api/models context window enrichment", () => {
     expect(requestedUrls).toContain("https://models.dev/api.json");
   });
 
-  test("hides Claude Opus models for managed trial users", async () => {
+  test("does not hide Claude Opus models in self-hosted mode (no managed trial restrictions)", async () => {
     gatewayModels.push(
       {
         id: "anthropic/claude-opus-4.6",
@@ -144,20 +148,20 @@ describe("/api/models context window enrichment", () => {
         modelType: "language",
       },
     );
-    currentSession = {
-      authProvider: "vercel",
-      user: { id: "user-1", email: "person@example.com" },
-    };
+    // self-hosted: no authProvider restriction
+    currentSession = { user: { id: "user-1", username: "test-user" } };
 
     const { GET } = await routeModulePromise;
     const response = await GET(
-      new Request("https://open-agents.dev/api/models"),
+      new Request("https://self-hosted.example/api/models"),
     );
     const body = (await response.json()) as {
       models: Array<{ id: string }>;
     };
 
+    // Both models should be visible — no restrictions in self-hosted mode
     expect(body.models.map((model) => model.id)).toEqual([
+      "anthropic/claude-opus-4.6",
       "anthropic/claude-haiku-4.5",
     ]);
   });

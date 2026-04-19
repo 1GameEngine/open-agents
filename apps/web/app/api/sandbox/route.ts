@@ -59,7 +59,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { repoUrl, branch = "main", isNewBranch = false, sessionId } = body;
+  const { repoUrl, branch = "main", isNewBranch = false, sessionId, sandboxType } = body;
+
+  // Only local-fs is supported in self-hosted mode
+  if (sandboxType !== undefined && sandboxType !== "local-fs") {
+    return Response.json({ error: "Invalid sandbox type" }, { status: 400 });
+  }
 
   const authResult = await requireAuthenticatedUser();
   if (!authResult.ok) return authResult.response;

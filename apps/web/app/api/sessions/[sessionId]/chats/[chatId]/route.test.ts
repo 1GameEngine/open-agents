@@ -116,8 +116,17 @@ mock.module("@/lib/db/user-preferences", () => ({
   }),
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    // Mirror authResult so both mock systems stay in sync
+    if (!authResult.ok) return authResult;
+    return {
+      ok: true as const,
+      userId: authResult.userId,
+      username: authResult.userId,
+      authProvider: "api-key" as const,
+    };
+  },
 }));
 
 const routeModulePromise = import("./route");

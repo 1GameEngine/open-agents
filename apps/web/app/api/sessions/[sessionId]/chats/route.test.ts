@@ -70,8 +70,17 @@ mock.module("nanoid", () => ({
   nanoid: () => "generated-chat-id",
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    // Mirror authResult so both mock systems stay in sync
+    if (!authResult.ok) return authResult;
+    return {
+      ok: true as const,
+      userId: authResult.userId,
+      username: authResult.userId,
+      authProvider: "api-key" as const,
+    };
+  },
 }));
 
 mock.module("@/lib/db/sessions", () => ({

@@ -4,8 +4,6 @@
  * The Vercel CLI is not used in self-hosted deployments. This file is kept
  * as a stub so that any remaining import sites compile without errors.
  */
-import "server-only";
-
 export interface VercelCliProjectLink {
   orgId: string;
   projectId: string;

@@ -96,8 +96,22 @@ mock.module("@/lib/db/user-preferences", () => ({
   }),
 }));
 
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = viewerSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
+}));
+
+// shared/[shareId]/page.tsx calls getServerSession() to determine if the viewer
+// owns the session (for the "Edit" link). Mock it here so tests don't hit next/headers.
 mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => viewerSession,
+  getServerSession: async () => {
+    const _s = viewerSession;
+    if (!_s) return null;
+    return { user: { id: _s.user.id, username: _s.user.id, authProvider: "api-key" as const } };
+  },
 }));
 
 mock.module("./shared-chat-content", () => ({

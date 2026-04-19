@@ -208,8 +208,12 @@ mock.module("@/lib/sandbox/utils", () => ({
   isSandboxActive: () => isSandboxActive,
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentAuthSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = currentAuthSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 const routeModulePromise = import("./route");
@@ -300,15 +304,8 @@ describe("/api/chat route", () => {
     expect(response.ok).toBe(true);
   });
 
-  test("blocks a sixth message for non-Vercel trial users on the managed deployment", async () => {
+  test("does not block messages in self-hosted mode (no managed trial limit)", async () => {
     const { POST } = await routeModulePromise;
-    currentAuthSession = {
-      authProvider: "vercel",
-      user: {
-        id: "user-1",
-        email: "person@example.com",
-      },
-    };
     existingUserMessageCount = 5;
 
     const response = await POST(
@@ -324,16 +321,13 @@ describe("/api/chat route", () => {
             },
           ],
         }),
-        "https://open-agents.dev/api/chat",
+        "https://self-hosted.example/api/chat",
       ),
     );
-    const body = (await response.json()) as { error: string };
 
-    expect(response.status).toBe(403);
-    expect(body.error).toBe(
-      "This hosted deployment has a 5 message limit. Deploy your own copy for no limit at open-agents.dev/deploy-your-own.",
-    );
-    expect(startCalls).toHaveLength(0);
+    // Self-hosted mode has no message limit — the request should proceed normally
+    expect(response.ok).toBe(true);
+    expect(startCalls).toHaveLength(1);
   });
 
   test("passes the 500 maxSteps limit to the workflow", async () => {

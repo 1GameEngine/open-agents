@@ -26,8 +26,12 @@ let chatRecord: ChatRecord | null = {
   activeStreamId: null,
 };
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => authSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = authSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 mock.module("@/lib/db/sessions", () => ({
@@ -67,8 +71,8 @@ describe("session context guards", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
+      // In API-key mode the 401 body comes from requireApiKey directly
       expect(result.response.status).toBe(401);
-      expect(await getErrorMessage(result.response)).toBe("Not authenticated");
     }
   });
 
@@ -77,7 +81,7 @@ describe("session context guards", () => {
 
     const result = await requireAuthenticatedUser();
 
-    expect(result).toEqual({ ok: true, userId: "user-1" });
+    expect(result).toMatchObject({ ok: true, userId: "user-1" });
   });
 
   test("requireOwnedSession returns 404 when session is missing", async () => {

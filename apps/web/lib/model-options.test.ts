@@ -24,11 +24,11 @@ function createModel(input: {
 }
 
 describe("model options", () => {
-  test("buildModelOptions includes base models and variants", () => {
+  test("buildModelOptions includes base models and variants for allowlisted bases", () => {
     const models: AvailableModel[] = [
       createModel({
-        id: "openai/gpt-5",
-        name: "GPT-5",
+        id: "openai/gpt-5.4-mini",
+        name: "GPT-5.4 mini",
         description: "Base model",
         contextWindow: 400_000,
       }),
@@ -36,9 +36,9 @@ describe("model options", () => {
 
     const variants: ModelVariant[] = [
       {
-        id: "variant:gpt-5-medium",
-        name: "GPT-5 Medium Reasoning",
-        baseModelId: "openai/gpt-5",
+        id: "variant:gpt-5.4-mini-medium",
+        name: "GPT-5.4 mini (medium reasoning)",
+        baseModelId: "openai/gpt-5.4-mini",
         providerOptions: { reasoningEffort: "medium" },
       },
     ];
@@ -47,24 +47,48 @@ describe("model options", () => {
 
     expect(options).toEqual([
       {
-        id: "openai/gpt-5",
-        label: "GPT-5",
-        shortLabel: "GPT-5",
+        id: "openai/gpt-5.4-mini",
+        label: "GPT-5.4 mini",
+        shortLabel: "GPT-5.4 mini",
         description: "Base model",
         isVariant: false,
         contextWindow: 400_000,
         provider: "openai",
       },
       {
-        id: "variant:gpt-5-medium",
-        label: "GPT-5 Medium Reasoning",
-        shortLabel: "GPT-5 Medium Reasoning",
-        description: "Variant of GPT-5",
+        id: "variant:gpt-5.4-mini-medium",
+        label: "GPT-5.4 mini (medium reasoning)",
+        shortLabel: "GPT-5.4 mini (medium reasoning)",
+        description: "Variant of GPT-5.4 mini",
         isVariant: true,
         contextWindow: 400_000,
         provider: "openai",
       },
     ]);
+  });
+
+  test("buildModelOptions omits variants when base model is not in the allowlist", () => {
+    const models: AvailableModel[] = [
+      createModel({
+        id: "openai/gpt-5.4-mini",
+        name: "GPT-5.4 mini",
+        contextWindow: 128_000,
+      }),
+    ];
+
+    const variants: ModelVariant[] = [
+      {
+        id: "variant:off-list",
+        name: "Custom",
+        baseModelId: "openai/gpt-5",
+        providerOptions: {},
+      },
+    ];
+
+    const options = buildModelOptions(models, variants);
+
+    expect(options).toHaveLength(1);
+    expect(options[0]?.id).toBe("openai/gpt-5.4-mini");
   });
 
   test("buildModelOptions strips provider prefix for shortLabel", () => {

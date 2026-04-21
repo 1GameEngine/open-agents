@@ -116,9 +116,11 @@ export function buildModelOptions(
   const baseModelOptions = models.map(toBaseModelOption);
   const baseModelsById = new Map(models.map((model) => [model.id, model]));
 
-  const variantOptions = modelVariants.map((variant) =>
-    toVariantOption(variant, baseModelsById.get(variant.baseModelId)),
-  );
+  const variantOptions = modelVariants
+    .filter((variant) => isAllowedLanguageModelId(variant.baseModelId))
+    .map((variant) =>
+      toVariantOption(variant, baseModelsById.get(variant.baseModelId)),
+    );
 
   return [...baseModelOptions, ...variantOptions];
 }

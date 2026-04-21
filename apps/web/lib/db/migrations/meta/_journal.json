@@ -218,6 +218,20 @@
       "when": 1776754614261,
       "tag": "0030_foamy_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1776773024295,
+      "tag": "0031_common_centennial",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1776773355114,
+      "tag": "0032_aspiring_power_pack",
+      "breakpoints": true
     }
   ]
 }

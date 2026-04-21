@@ -97,6 +97,11 @@ describe("/api/models context window enrichment", () => {
         context_window: 200_000,
       },
       {
+        id: "moonshotai/kimi-k2.5",
+        modelType: "language",
+        context_window: 128_000,
+      },
+      {
         id: "anthropic/claude-opus-4.6",
         modelType: "language",
         context_window: 200_000,
@@ -121,6 +126,13 @@ describe("/api/models context window enrichment", () => {
           },
         },
       },
+      moonshotai: {
+        models: {
+          "kimi-k2.5": {
+            limit: { context: 256_000 },
+          },
+        },
+      },
       anthropic: {
         models: {
           "claude-opus-4.6": {
@@ -142,14 +154,19 @@ describe("/api/models context window enrichment", () => {
       body.models.map((model) => [model.id, model.context_window]),
     );
 
+    expect(body.models.map((m) => m.id)).toEqual([
+      "moonshotai/kimi-k2.5",
+      "openai/gpt-5.3-codex",
+    ]);
     expect(contextById.get("openai/gpt-5.3-codex")).toBe(400_000);
-    expect(contextById.get("anthropic/claude-opus-4.6")).toBe(1_000_000);
-    expect(contextById.get("openai/gpt-4o-mini")).toBe(128_000);
+    expect(contextById.get("moonshotai/kimi-k2.5")).toBe(256_000);
+    expect(contextById.has("anthropic/claude-opus-4.6")).toBe(false);
+    expect(contextById.has("openai/gpt-4o-mini")).toBe(false);
     expect(contextById.has("openai/image-gen")).toBe(false);
     expect(requestedUrls).toContain("https://models.dev/api.json");
   });
 
-  test("does not hide Claude Opus models in self-hosted mode (no managed trial restrictions)", async () => {
+  test("self-hosted mode returns only allowlisted models (trial opus filter does not expand the list)", async () => {
     gatewayModels.push(
       {
         id: "anthropic/claude-opus-4.6",
@@ -157,6 +174,10 @@ describe("/api/models context window enrichment", () => {
       },
       {
         id: "anthropic/claude-haiku-4.5",
+        modelType: "language",
+      },
+      {
+        id: "moonshotai/kimi-k2.5",
         modelType: "language",
       },
     );
@@ -171,16 +192,15 @@ describe("/api/models context window enrichment", () => {
       models: Array<{ id: string }>;
     };
 
-    // Both models should be visible — no restrictions in self-hosted mode
+    // Curated allowlist applies; Claude models are not hidden by trial logic but are not in the shortlist
     expect(body.models.map((model) => model.id)).toEqual([
-      "anthropic/claude-opus-4.6",
-      "anthropic/claude-haiku-4.5",
+      "moonshotai/kimi-k2.5",
     ]);
   });
 
   test("keeps gateway context window when models.dev only has related ids", async () => {
     gatewayModels.push({
-      id: "openai/gpt-5.3-codex-2026-02-15",
+      id: "openai/gpt-5.4-mini",
       modelType: "language",
       context_window: 200_000,
     });
@@ -208,6 +228,7 @@ describe("/api/models context window enrichment", () => {
     };
 
     expect(body.models).toHaveLength(1);
+    expect(body.models[0]?.id).toBe("openai/gpt-5.4-mini");
     expect(body.models[0]?.context_window).toBe(200_000);
   });
 
@@ -278,9 +299,9 @@ describe("/api/models context window enrichment", () => {
       response: {
         models: [
           {
-            id: "openai/gpt-5.4",
-            name: "GPT 5.4",
-            description: "Latest GPT model",
+            id: "moonshotai/kimi-k2.6",
+            name: "Kimi K2.6",
+            description: "Curated model",
             modelType: "language",
           },
           {
@@ -313,9 +334,9 @@ describe("/api/models context window enrichment", () => {
 
     expect(body.models).toEqual([
       {
-        id: "openai/gpt-5.4",
-        name: "GPT 5.4",
-        description: "Latest GPT model",
+        id: "moonshotai/kimi-k2.6",
+        name: "Kimi K2.6",
+        description: "Curated model",
         modelType: "language",
       },
     ]);

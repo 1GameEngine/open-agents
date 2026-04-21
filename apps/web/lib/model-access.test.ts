@@ -7,6 +7,7 @@ import {
   sanitizeSelectedModelIdForSession,
   sanitizeUserPreferencesForSession,
 } from "./model-access";
+import { APP_DEFAULT_MODEL_ID } from "./models";
 
 const managedTrialSession = {
   authProvider: "vercel" as const,
@@ -92,7 +93,7 @@ describe("model access gating", () => {
       requestUrl,
     );
 
-    expect(result).toBe("openai/gpt-5.4");
+    expect(result).toBe(APP_DEFAULT_MODEL_ID);
   });
 
   test("sanitizes managed trial preferences without mutating the database shape", () => {
@@ -103,8 +104,8 @@ describe("model access gating", () => {
     );
 
     expect(result).toMatchObject({
-      defaultModelId: "openai/gpt-5.4",
-      defaultSubagentModelId: "openai/gpt-5.4",
+      defaultModelId: APP_DEFAULT_MODEL_ID,
+      defaultSubagentModelId: APP_DEFAULT_MODEL_ID,
       modelVariants: [],
       enabledModelIds: ["openai/gpt-5"],
     });

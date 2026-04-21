@@ -24,11 +24,11 @@ function createModel(input: {
 }
 
 describe("model options", () => {
-  test("buildModelOptions includes base models and variants", () => {
+  test("buildModelOptions includes base models and variants for allowlisted bases", () => {
     const models: AvailableModel[] = [
       createModel({
-        id: "openai/gpt-5",
-        name: "GPT-5",
+        id: "openai/gpt-5.4-mini",
+        name: "GPT-5.4 mini",
         description: "Base model",
         contextWindow: 400_000,
       }),
@@ -36,9 +36,9 @@ describe("model options", () => {
 
     const variants: ModelVariant[] = [
       {
-        id: "variant:gpt-5-medium",
-        name: "GPT-5 Medium Reasoning",
-        baseModelId: "openai/gpt-5",
+        id: "variant:gpt-5.4-mini-medium",
+        name: "GPT-5.4 mini (medium reasoning)",
+        baseModelId: "openai/gpt-5.4-mini",
         providerOptions: { reasoningEffort: "medium" },
       },
     ];
@@ -47,24 +47,48 @@ describe("model options", () => {
 
     expect(options).toEqual([
       {
-        id: "openai/gpt-5",
-        label: "GPT-5",
-        shortLabel: "GPT-5",
+        id: "openai/gpt-5.4-mini",
+        label: "GPT-5.4 mini",
+        shortLabel: "GPT-5.4 mini",
         description: "Base model",
         isVariant: false,
         contextWindow: 400_000,
         provider: "openai",
       },
       {
-        id: "variant:gpt-5-medium",
-        label: "GPT-5 Medium Reasoning",
-        shortLabel: "GPT-5 Medium Reasoning",
-        description: "Variant of GPT-5",
+        id: "variant:gpt-5.4-mini-medium",
+        label: "GPT-5.4 mini (medium reasoning)",
+        shortLabel: "GPT-5.4 mini (medium reasoning)",
+        description: "Variant of GPT-5.4 mini",
         isVariant: true,
         contextWindow: 400_000,
         provider: "openai",
       },
     ]);
+  });
+
+  test("buildModelOptions omits variants when base model is not in the allowlist", () => {
+    const models: AvailableModel[] = [
+      createModel({
+        id: "openai/gpt-5.4-mini",
+        name: "GPT-5.4 mini",
+        contextWindow: 128_000,
+      }),
+    ];
+
+    const variants: ModelVariant[] = [
+      {
+        id: "variant:off-list",
+        name: "Custom",
+        baseModelId: "openai/gpt-5",
+        providerOptions: {},
+      },
+    ];
+
+    const options = buildModelOptions(models, variants);
+
+    expect(options).toHaveLength(1);
+    expect(options[0]?.id).toBe("openai/gpt-5.4-mini");
   });
 
   test("buildModelOptions strips provider prefix for shortLabel", () => {
@@ -81,7 +105,7 @@ describe("model options", () => {
     expect(options[0].label).toBe("Claude Opus 4.6");
   });
 
-  test("groupByProvider puts anthropic and openai first, preserves insertion order", () => {
+  test("groupByProvider puts priority providers first, preserves insertion order", () => {
     const options = [
       {
         id: "google/gemini-2.5",
@@ -96,6 +120,13 @@ describe("model options", () => {
         shortLabel: "GPT-5",
         isVariant: false,
         provider: "openai",
+      },
+      {
+        id: "moonshotai/kimi-k2.5",
+        label: "Kimi K2.5",
+        shortLabel: "Kimi K2.5",
+        isVariant: false,
+        provider: "moonshotai",
       },
       {
         id: "variant:opus-custom",
@@ -116,13 +147,14 @@ describe("model options", () => {
     const groups = groupByProvider(options);
 
     expect(groups.map((g) => g.provider)).toEqual([
-      "anthropic",
+      "moonshotai",
       "openai",
       "google",
+      "anthropic",
     ]);
     // Within anthropic: preserves original order (variant first, base second)
-    expect(groups[0].options[0].id).toBe("variant:opus-custom");
-    expect(groups[0].options[1].id).toBe("anthropic/claude-opus-4.6");
+    expect(groups[3].options[0].id).toBe("variant:opus-custom");
+    expect(groups[3].options[1].id).toBe("anthropic/claude-opus-4.6");
   });
 
   test("withMissingModelOption appends missing variant option", () => {
@@ -140,7 +172,7 @@ describe("model options", () => {
     });
   });
 
-  test("withMissingModelOption does not append non-variant ids", () => {
+  test("withMissingModelOption appends legacy placeholder for unknown base model ids", () => {
     const original = [
       {
         id: "openai/gpt-5",
@@ -151,9 +183,15 @@ describe("model options", () => {
       },
     ];
 
-    expect(withMissingModelOption(original, "openai/unknown-model")).toBe(
-      original,
-    );
+    const result = withMissingModelOption(original, "openai/unknown-model");
+
+    expect(result).toHaveLength(2);
+    expect(result[1]).toMatchObject({
+      id: "openai/unknown-model",
+      label: "openai/unknown-model (legacy)",
+      isVariant: false,
+      provider: "openai",
+    });
   });
 
   test("withMissingModelOption returns original list when id already exists", () => {
@@ -173,11 +211,11 @@ describe("model options", () => {
   test("getDefaultModelOptionId prefers repository default model when present", () => {
     const options = [
       {
-        id: "openai/gpt-5.4",
-        label: "GPT-5.4",
-        shortLabel: "GPT-5.4",
+        id: "moonshotai/kimi-k2.5",
+        label: "Kimi K2.5",
+        shortLabel: "Kimi K2.5",
         isVariant: false,
-        provider: "anthropic",
+        provider: "moonshotai",
       },
       {
         id: "openai/gpt-5",
@@ -188,7 +226,7 @@ describe("model options", () => {
       },
     ];
 
-    expect(getDefaultModelOptionId(options)).toBe("openai/gpt-5.4");
+    expect(getDefaultModelOptionId(options)).toBe("moonshotai/kimi-k2.5");
   });
 
   test("getDefaultModelOptionId falls back to first option when default is missing", () => {

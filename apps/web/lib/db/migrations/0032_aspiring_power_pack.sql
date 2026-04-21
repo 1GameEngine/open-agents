@@ -1,0 +1,1 @@
+ALTER TABLE "chats" ALTER COLUMN "model_id" SET DEFAULT 'moonshotai/kimi-k2.5';

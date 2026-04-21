@@ -12,6 +12,7 @@ import {
   getProviderFromModelId,
   stripProviderPrefix,
 } from "@/components/provider-icons";
+import { isAllowedLanguageModelId } from "@/lib/allowed-language-models";
 
 export interface ModelOption {
   id: string;
@@ -61,7 +62,13 @@ function toVariantOption(
 }
 
 /** Providers pinned to the top of the list, in order. */
-const PRIORITY_PROVIDERS = ["anthropic", "openai"];
+const PRIORITY_PROVIDERS = [
+  "moonshotai",
+  "alibaba",
+  "openai",
+  "google",
+  "anthropic",
+];
 
 export interface ModelGroup {
   provider: string;
@@ -109,9 +116,11 @@ export function buildModelOptions(
   const baseModelOptions = models.map(toBaseModelOption);
   const baseModelsById = new Map(models.map((model) => [model.id, model]));
 
-  const variantOptions = modelVariants.map((variant) =>
-    toVariantOption(variant, baseModelsById.get(variant.baseModelId)),
-  );
+  const variantOptions = modelVariants
+    .filter((variant) => isAllowedLanguageModelId(variant.baseModelId))
+    .map((variant) =>
+      toVariantOption(variant, baseModelsById.get(variant.baseModelId)),
+    );
 
   return [...baseModelOptions, ...variantOptions];
 }
@@ -131,22 +140,40 @@ export function withMissingModelOption(
     return modelOptions;
   }
 
-  if (!modelId.startsWith(MODEL_VARIANT_ID_PREFIX)) {
+  if (modelId.startsWith(MODEL_VARIANT_ID_PREFIX)) {
+    const label = `${modelId.slice(MODEL_VARIANT_ID_PREFIX.length)} (missing)`;
+
+    return [
+      ...modelOptions,
+      {
+        id: modelId,
+        label,
+        shortLabel: label,
+        description: "Variant no longer exists",
+        isVariant: true,
+        contextWindow: undefined,
+        provider: "unknown",
+      },
+    ];
+  }
+
+  if (isAllowedLanguageModelId(modelId)) {
     return modelOptions;
   }
 
-  const label = `${modelId.slice(MODEL_VARIANT_ID_PREFIX.length)} (missing)`;
+  const provider = getProviderFromModelId(modelId);
+  const label = `${modelId} (legacy)`;
 
   return [
     ...modelOptions,
     {
       id: modelId,
       label,
-      shortLabel: label,
-      description: "Variant no longer exists",
-      isVariant: true,
+      shortLabel: stripProviderPrefix(label, provider),
+      description: "Model is no longer in the curated list",
+      isVariant: false,
       contextWindow: undefined,
-      provider: "unknown",
+      provider,
     },
   ];
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "user_preferences" ALTER COLUMN "default_model_id" SET DEFAULT 'moonshotai/kimi-k2.5';

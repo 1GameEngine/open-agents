@@ -11,7 +11,7 @@ describe("toUserPreferencesData", () => {
     const { toUserPreferencesData } = await userPreferencesModulePromise;
 
     expect(toUserPreferencesData()).toEqual({
-      defaultModelId: "openai/gpt-5.4",
+      defaultModelId: "moonshotai/kimi-k2.5",
       defaultSubagentModelId: null,
       defaultSandboxType: "local-fs",
       defaultDiffMode: "unified",

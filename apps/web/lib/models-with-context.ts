@@ -2,6 +2,7 @@ import "server-only";
 
 import { gateway } from "ai";
 import { z } from "zod";
+import { filterAndOrderAvailableLanguageModels } from "./allowed-language-models";
 import { filterDisabledModels } from "./model-availability";
 import type {
   AvailableModel,
@@ -232,7 +233,9 @@ export async function fetchAvailableLanguageModelsWithContext(): Promise<
     fetchModelsDevMetadataMap(),
   ]);
 
-  return models.map((model) =>
+  const enriched = models.map((model) =>
     addModelsDevMetadata(model, modelsDevMetadataMap),
   );
+
+  return filterAndOrderAvailableLanguageModels(enriched);
 }

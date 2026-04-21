@@ -49,12 +49,6 @@ let ownedSessionChatResult: OwnedSessionChatResult = {
     activeStreamId: null,
   },
 };
-let currentSession: {
-  authProvider?: "vercel" | "github";
-  user: { id: string; email?: string; username?: string; avatar?: string };
-} | null = {
-  user: { id: "user-1" },
-};
 let chatMessages: ChatMessageRecord[] = [
   {
     id: "message-1",
@@ -162,7 +156,6 @@ describe("/api/sessions/[sessionId]/chats/[chatId]", () => {
         activeStreamId: null,
       },
     };
-    currentSession = { user: { id: "user-1" } };
     chatMessages = [
       {
         id: "message-1",

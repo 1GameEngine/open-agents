@@ -149,7 +149,10 @@ export async function GET(req: Request): Promise<Response> {
 
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   if (!session?.user?.id) {
     const signinUrl = new URL("/api/auth/signin/vercel", req.url);
     signinUrl.searchParams.set(

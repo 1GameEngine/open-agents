@@ -47,8 +47,20 @@ mock.module("server-only", () => ({}));
 mock.module("@/lib/auth/api-key", () => ({
   requireApiKey: async () => {
     const _s = currentSession;
-    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
-    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+    if (!_s)
+      return {
+        ok: false as const,
+        response: Response.json(
+          { error: "Not authenticated" },
+          { status: 401 },
+        ),
+      };
+    return {
+      ok: true as const,
+      userId: _s.user.id,
+      username: _s.user.id,
+      authProvider: "api-key" as const,
+    };
   },
 }));
 

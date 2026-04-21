@@ -28,9 +28,7 @@ import {
   MANAGED_TEMPLATE_TRIAL_MESSAGE_LIMIT_ERROR,
 } from "@/lib/managed-template-trial";
 import { buildActiveLifecycleUpdate } from "@/lib/sandbox/lifecycle";
-import {
-  requireOwnedSessionChat,
-} from "./_lib/chat-context";
+import { requireOwnedSessionChat } from "./_lib/chat-context";
 import { resolveChatModelSelection } from "./_lib/model-selection";
 import { parseChatRequestBody, requireChatIdentifiers } from "./_lib/request";
 import { createChatRuntime } from "./_lib/runtime";
@@ -56,7 +54,10 @@ export async function POST(req: Request) {
   // 1. Validate session
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   const userId = authResult.userId;
   const parsedBody = await parseChatRequestBody(req);
   if (!parsedBody.ok) {

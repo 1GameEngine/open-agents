@@ -134,13 +134,18 @@ EXAMPLES:
         } else if (stat.isDirectory()) {
           filesToSearch = await collectFiles(absolutePath);
         } else {
-          return { success: false, error: "Path is neither a file nor a directory" };
+          return {
+            success: false,
+            error: "Path is neither a file nor a directory",
+          };
         }
 
         // Apply glob filter if provided
         if (glob) {
           const globRe = globToRegex(glob);
-          filesToSearch = filesToSearch.filter((f) => globRe.test(path.basename(f)));
+          filesToSearch = filesToSearch.filter((f) =>
+            globRe.test(path.basename(f)),
+          );
         }
 
         const maxTotal = 100;

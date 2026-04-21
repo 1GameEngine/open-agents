@@ -58,5 +58,10 @@ export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
     };
   }
 
-  return { ok: true, userId: result.userId, username: result.username, authProvider: "api-key" as const };
+  return {
+    ok: true,
+    userId: result.userId,
+    username: result.username,
+    authProvider: "api-key" as const,
+  };
 }

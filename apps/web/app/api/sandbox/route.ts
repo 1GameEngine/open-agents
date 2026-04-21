@@ -9,7 +9,11 @@
  * by the web server process using the `simple-git` library.
  */
 import * as path from "path";
-import { createLocalFsSandbox, connectLocalFsSandbox, type LocalFsState } from "@open-harness/sandbox/local-fs";
+import {
+  createLocalFsSandbox,
+  connectLocalFsSandbox,
+  type LocalFsState,
+} from "@open-harness/sandbox/local-fs";
 import {
   requireAuthenticatedUser,
   requireOwnedSession,
@@ -59,7 +63,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { repoUrl, branch = "main", isNewBranch = false, sessionId, sandboxType } = body;
+  const {
+    repoUrl,
+    branch = "main",
+    isNewBranch = false,
+    sessionId,
+    sandboxType,
+  } = body;
 
   // Only local-fs is supported in self-hosted mode
   if (sandboxType !== undefined && sandboxType !== "local-fs") {
@@ -88,7 +98,10 @@ export async function POST(req: Request) {
   let sandbox: Awaited<ReturnType<typeof createLocalFsSandbox>>;
   let currentBranch = branch;
 
-  const existingState = sessionRecord?.sandboxState as LocalFsState | null | undefined;
+  const existingState = sessionRecord?.sandboxState as
+    | LocalFsState
+    | null
+    | undefined;
 
   if (existingState?.type === "local-fs" && existingState.sandboxDir) {
     // Resume existing sandbox

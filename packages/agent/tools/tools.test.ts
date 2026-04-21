@@ -228,8 +228,16 @@ describe("tools execute behavior", () => {
     const { sandbox, workingDirectory } = await createFsSandbox();
     const srcDir = path.join(workingDirectory, "src");
     await mkdir(srcDir, { recursive: true });
-    await writeFile(path.join(srcDir, "a.ts"), "line1\nmatch-a\nline3", "utf-8");
-    await writeFile(path.join(srcDir, "b.ts"), "hello\n" + "x".repeat(300), "utf-8");
+    await writeFile(
+      path.join(srcDir, "a.ts"),
+      "line1\nmatch-a\nline3",
+      "utf-8",
+    );
+    await writeFile(
+      path.join(srcDir, "b.ts"),
+      "hello\n" + "x".repeat(300),
+      "utf-8",
+    );
     await writeFile(path.join(srcDir, "c.txt"), "match-c", "utf-8"); // excluded by glob
 
     const result = await grepTool().execute?.(

@@ -4,7 +4,10 @@
  */
 export async function GET(): Promise<Response> {
   return Response.json(
-    { error: "Vercel OAuth is not available in self-hosted mode. Use API key authentication." },
+    {
+      error:
+        "Vercel OAuth is not available in self-hosted mode. Use API key authentication.",
+    },
     { status: 410 },
   );
 }

@@ -78,7 +78,10 @@ function parseNonNegativeInteger(value: string | null): number | null {
 export async function GET(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   const { searchParams } = new URL(req.url);
   const rawStatus = searchParams.get("status");
@@ -156,7 +159,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   if (isManagedTemplateTrialUser(session, req.url)) {
     const existingSessionCount = await countSessionsByUserId(session.user.id);

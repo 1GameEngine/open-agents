@@ -28,7 +28,10 @@ interface UpdatePreferencesRequest {
 export async function GET(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   const preferences = sanitizeUserPreferencesForSession(
     await getUserPreferences(session.user.id),
@@ -41,7 +44,10 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   let body: UpdatePreferencesRequest;
   try {

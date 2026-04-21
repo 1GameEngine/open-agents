@@ -4,7 +4,9 @@
  */
 export async function GET(): Promise<Response> {
   return Response.json(
-    { error: "Vercel project integration is not available in self-hosted mode." },
+    {
+      error: "Vercel project integration is not available in self-hosted mode.",
+    },
     { status: 410 },
   );
 }

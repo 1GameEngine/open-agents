@@ -5,4 +5,5 @@
  * This file is kept to avoid breaking any imports that may reference it,
  * but it exports nothing meaningful.
  */
-export {};
+
+export const BASH_RENDERER_STUB = true;

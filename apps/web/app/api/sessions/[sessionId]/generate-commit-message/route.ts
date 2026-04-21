@@ -12,7 +12,10 @@ export async function POST(
 ) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   const { sessionId } = await params;
   const dbSession = await getSessionById(sessionId);
   if (!dbSession || dbSession.userId !== session.user.id) {

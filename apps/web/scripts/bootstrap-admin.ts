@@ -16,7 +16,7 @@
  */
 
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { createPostgresClient } from "../lib/db/postgres-connection";
 import { nanoid } from "nanoid";
 import { createHash } from "crypto";
 import * as schema from "../lib/db/schema";
@@ -30,46 +30,56 @@ if (!POSTGRES_URL) {
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@localhost";
 
-const client = postgres(POSTGRES_URL);
+const client = createPostgresClient();
 const db = drizzle(client, { schema });
 
 async function main() {
   console.log("Bootstrapping self-hosted admin user...\n");
 
-  // Check if admin user already exists
-  const existing = await db
+  const existingUsers = await db
     .select({ id: schema.users.id })
     .from(schema.users)
     .limit(1);
 
-  if (existing.length > 0) {
+  const existingKeys = await db
+    .select({ id: schema.apiKeys.id })
+    .from(schema.apiKeys)
+    .limit(1);
+
+  if (existingKeys.length > 0) {
     console.log(
-      "Database already has users. Use the API to create additional API keys.\n",
+      "Database already has API keys. Use the API to create additional API keys.\n",
     );
     await client.end();
     process.exit(0);
   }
 
-  // Create admin user
-  const userId = nanoid();
+  let userId: string;
   const now = new Date();
 
-  await db.insert(schema.users).values({
-    id: userId,
-    provider: "github", // placeholder provider for self-hosted
-    externalId: `self-hosted:${userId}`,
-    accessToken: "", // not used in API key mode
-    username: ADMIN_USERNAME,
-    email: ADMIN_EMAIL,
-    name: ADMIN_USERNAME,
-    createdAt: now,
-    updatedAt: now,
-    lastLoginAt: now,
-  });
+  if (existingUsers.length > 0) {
+    userId = existingUsers[0].id;
+    console.log(
+      `Found existing user (id: ${userId}) but no API keys — creating initial bootstrap key.\n`,
+    );
+  } else {
+    userId = nanoid();
+    await db.insert(schema.users).values({
+      id: userId,
+      provider: "github", // placeholder provider for self-hosted
+      externalId: `self-hosted:${userId}`,
+      accessToken: "", // not used in API key mode
+      username: ADMIN_USERNAME,
+      email: ADMIN_EMAIL,
+      name: ADMIN_USERNAME,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: now,
+    });
 
-  console.log(`Created admin user: ${ADMIN_USERNAME} (id: ${userId})`);
+    console.log(`Created admin user: ${ADMIN_USERNAME} (id: ${userId})`);
+  }
 
-  // Generate an API key
   const rawKey = `oha_${nanoid(40)}`;
   const keyHash = createHash("sha256").update(rawKey).digest("hex");
   const keyId = nanoid();
@@ -86,7 +96,9 @@ async function main() {
   console.log(`Key: ${rawKey}`);
   console.log("(Store this securely — it will not be shown again)\n");
   console.log("Usage:");
-  console.log(`  curl -H "Authorization: Bearer ${rawKey}" http://localhost:3000/api/models`);
+  console.log(
+    `  curl -H "Authorization: Bearer ${rawKey}" http://localhost:3000/api/models`,
+  );
 
   await client.end();
 }

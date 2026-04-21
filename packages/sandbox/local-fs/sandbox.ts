@@ -38,7 +38,10 @@ function resolveAndGuard(sandboxDir: string, userPath: string): string {
   const normSandbox = path.resolve(sandboxDir);
   const normResolved = path.resolve(resolved);
 
-  if (!normResolved.startsWith(normSandbox + path.sep) && normResolved !== normSandbox) {
+  if (
+    !normResolved.startsWith(normSandbox + path.sep) &&
+    normResolved !== normSandbox
+  ) {
     throw new Error(
       `Path traversal detected: "${userPath}" resolves outside sandbox boundary`,
     );

@@ -10,10 +10,9 @@ The following environment variables are required:
 
 ## One-command local dev (self-hosted + PGlite)
 
-This repo includes **`apps/web/.env`** tuned for **PGlite on port 5433**, **local-fs sandboxes** under `/tmp/open-agents-sandboxes`, and a **fixed dev API key** (`BOOTSTRAP_API_KEY` / `NEXT_PUBLIC_SELF_HOSTED_API_KEY`).
+This repo includes **`apps/web/.env`** tuned for **PGlite on port 5433**, **local-fs sandboxes** under `/tmp/open-agents-sandboxes`, a **Vercel AI Gateway** key, and a **fixed dev API key** (`BOOTSTRAP_API_KEY` / `NEXT_PUBLIC_SELF_HOSTED_API_KEY`).
 
-1. Edit **`apps/web/.env`** and replace `AI_GATEWAY_API_KEY=REPLACE_WITH_VERCEL_AI_GATEWAY_KEY` with a real [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway) key.
-2. From the **monorepo root**:
+1. From the **monorepo root**:
 
    ```bash
    bun install

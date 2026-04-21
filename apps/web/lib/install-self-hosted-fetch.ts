@@ -82,7 +82,10 @@ export function installSelfHostedFetch(): void {
     return originalFetch(input, { ...init, headers });
   }
 
-  window.fetch = Object.assign(patchedFetch, {
-    preconnect: originalFetch.preconnect.bind(originalFetch),
-  }) as typeof fetch;
+  const extras: Partial<typeof fetch> = {};
+  if (typeof originalFetch.preconnect === "function") {
+    extras.preconnect = originalFetch.preconnect.bind(originalFetch);
+  }
+
+  window.fetch = Object.assign(patchedFetch, extras) as typeof fetch;
 }

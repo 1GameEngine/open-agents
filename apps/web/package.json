@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:pglite": "npx pglite-server --db=./data/dev.db --host=127.0.0.1 --port=5433 --run \"bun run dev:pglite:child\"",
+    "dev:pglite": "mkdir -p ./data && npx pglite-server --db=./data/dev.db --host=127.0.0.1 --port=5433 --run \"bun run dev:pglite:child\"",
     "dev:pglite:child": "bun --env-file=.env run db:migrate:apply && bun --env-file=.env run bootstrap && next dev",
     "build": "bun run db:migrate:apply && next build",
     "db:migrate:apply": "bun run lib/db/migrate.ts",

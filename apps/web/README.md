@@ -10,14 +10,11 @@ The following environment variables are required:
 
 ## Local dev (self-hosted + PGlite)
 
-`apps/web/.env.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, and dev crypto / bootstrap keys.
-
-**`AI_GATEWAY_API_KEY` is not in git** — copy the example file, then add your [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway) key locally:
+`apps/web/.env.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, dev crypto / bootstrap keys, and a **sample `AI_GATEWAY_API_KEY`** for local runs (rotate if the repo is shared).
 
 ```bash
 bun install
 cp apps/web/.env.example apps/web/.env
-# Edit apps/web/.env and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 

@@ -10,7 +10,7 @@ let currentSession: {
 const preferencesState = {
   defaultModelId: "anthropic/claude-haiku-4.5",
   defaultSubagentModelId: null as string | null,
-  defaultSandboxType: "vercel" as const,
+  defaultSandboxType: "local-fs" as const,
   defaultDiffMode: "unified" as const,
   autoCommitPush: false,
   autoCreatePr: false,
@@ -100,7 +100,7 @@ describe("/api/settings/preferences", () => {
     expect(response.status).toBe(200);
     expect(body.preferences.autoCommitPush).toBe(false);
     expect(body.preferences.autoCreatePr).toBe(false);
-    expect(body.preferences.defaultSandboxType).toBe("vercel");
+    expect(body.preferences.defaultSandboxType).toBe("local-fs");
     expect(body.preferences.globalSkillRefs).toEqual([]);
   });
 

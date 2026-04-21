@@ -97,7 +97,7 @@ mock.module("@/lib/db/user-preferences", () => ({
   getUserPreferences: async () => ({
     defaultModelId: "model-default",
     defaultSubagentModelId: null,
-    defaultSandboxType: "vercel",
+    defaultSandboxType: "local-fs",
     defaultDiffMode: "unified",
     autoCommitPush: false,
     autoCreatePr: false,

@@ -8,18 +8,30 @@ The following environment variables are required:
 |----------|-------------|
 | `POSTGRES_URL` | PostgreSQL connection string. Required for builds — migrations run automatically during `next build` via `lib/db/migrate.ts`. Preview deployments use a Neon branch database; production uses the main database. |
 
+## One-command local dev (self-hosted + PGlite)
+
+This repo includes **`apps/web/.env`** tuned for **PGlite on port 5433**, **local-fs sandboxes** under `/tmp/open-agents-sandboxes`, and a **fixed dev API key** (`BOOTSTRAP_API_KEY` / `NEXT_PUBLIC_SELF_HOSTED_API_KEY`).
+
+1. Edit **`apps/web/.env`** and replace `AI_GATEWAY_API_KEY=REPLACE_WITH_VERCEL_AI_GATEWAY_KEY` with a real [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway) key.
+2. From the **monorepo root**:
+
+   ```bash
+   bun install
+   bun run web:dev:pglite
+   ```
+
+   Or from **`apps/web`**: `bun run dev:pglite`
+
+3. Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
+
+For production, **do not** reuse the committed `.env`; copy from **`.env.example`** and generate your own secrets and API keys.
+
 ## Getting Started
 
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun run web
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

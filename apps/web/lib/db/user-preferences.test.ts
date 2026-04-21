@@ -13,7 +13,7 @@ describe("toUserPreferencesData", () => {
     expect(toUserPreferencesData()).toEqual({
       defaultModelId: "openai/gpt-5.4",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "unified",
       autoCommitPush: false,
       autoCreatePr: false,
@@ -44,11 +44,32 @@ describe("toUserPreferencesData", () => {
       enabledModelIds: [],
     });
 
-    expect(result.defaultSandboxType).toBe("vercel");
+    expect(result.defaultSandboxType).toBe("local-fs");
     expect(result.defaultDiffMode).toBe("unified");
   });
 
-  test("normalizes legacy hybrid sandbox types to vercel", async () => {
+  test("normalizes legacy vercel preference to local-fs", async () => {
+    const { toUserPreferencesData } = await userPreferencesModulePromise;
+
+    const result = toUserPreferencesData({
+      defaultModelId: "openai/gpt-5",
+      defaultSubagentModelId: null,
+      defaultSandboxType: "vercel" as never,
+      defaultDiffMode: "unified",
+      autoCommitPush: false,
+      autoCreatePr: false,
+      alertsEnabled: true,
+      alertSoundEnabled: true,
+      publicUsageEnabled: false,
+      globalSkillRefs: [],
+      modelVariants: [],
+      enabledModelIds: [],
+    });
+
+    expect(result.defaultSandboxType).toBe("local-fs");
+  });
+
+  test("normalizes legacy hybrid sandbox types to local-fs", async () => {
     const { toUserPreferencesData } = await userPreferencesModulePromise;
 
     const result = toUserPreferencesData({
@@ -66,7 +87,7 @@ describe("toUserPreferencesData", () => {
       enabledModelIds: [],
     });
 
-    expect(result.defaultSandboxType).toBe("vercel");
+    expect(result.defaultSandboxType).toBe("local-fs");
     expect(result.defaultDiffMode).toBe("unified");
   });
 
@@ -76,7 +97,7 @@ describe("toUserPreferencesData", () => {
     const result = toUserPreferencesData({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: false,
       autoCreatePr: false,
@@ -99,7 +120,7 @@ describe("toUserPreferencesData", () => {
     const result = toUserPreferencesData({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: false,
       autoCreatePr: false,
@@ -125,7 +146,7 @@ describe("toUserPreferencesData", () => {
     const result = toUserPreferencesData({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: false,
       autoCreatePr: false,
@@ -146,7 +167,7 @@ describe("toUserPreferencesData", () => {
     const result = toUserPreferencesData({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: true,
       autoCreatePr: true,
@@ -168,7 +189,7 @@ describe("toUserPreferencesData", () => {
     expect(result).toEqual({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: true,
       autoCreatePr: true,
@@ -194,7 +215,7 @@ describe("toUserPreferencesData", () => {
     const result = toUserPreferencesData({
       defaultModelId: "openai/gpt-5",
       defaultSubagentModelId: null,
-      defaultSandboxType: "vercel",
+      defaultSandboxType: "local-fs",
       defaultDiffMode: "split",
       autoCommitPush: false,
       autoCreatePr: false,

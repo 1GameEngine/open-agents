@@ -57,7 +57,7 @@ export async function PATCH(req: Request) {
   }
 
   if (body.defaultSandboxType !== undefined) {
-    const validTypes = ["vercel"];
+    const validTypes = ["local-fs"];
     if (
       typeof body.defaultSandboxType !== "string" ||
       !validTypes.includes(body.defaultSandboxType)

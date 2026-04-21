@@ -13,6 +13,8 @@
  * Optional:
  *   ADMIN_USERNAME — username for the admin user (default: "admin")
  *   ADMIN_EMAIL    — email for the admin user (default: "admin@localhost")
+ *   BOOTSTRAP_API_KEY — if set (must start with `oha_`), used as the initial API key
+ *     instead of a random one (local dev only; do not use in production).
  */
 
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -80,7 +82,11 @@ async function main() {
     console.log(`Created admin user: ${ADMIN_USERNAME} (id: ${userId})`);
   }
 
-  const rawKey = `oha_${nanoid(40)}`;
+  const envKey = process.env.BOOTSTRAP_API_KEY?.trim();
+  const rawKey =
+    envKey && envKey.startsWith("oha_") && envKey.length >= 12
+      ? envKey
+      : `oha_${nanoid(40)}`;
   const keyHash = createHash("sha256").update(rawKey).digest("hex");
   const keyId = nanoid();
 

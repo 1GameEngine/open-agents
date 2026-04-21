@@ -56,7 +56,10 @@ function redirectWithInstallCookies(
 export async function GET(req: NextRequest): Promise<Response> {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   const redirectTo = sanitizeRedirectTo(req.nextUrl.searchParams.get("next"));
 

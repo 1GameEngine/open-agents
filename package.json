@@ -16,6 +16,7 @@
   },
   "scripts": {
     "web": "cd apps/web/ && bun run dev",
+    "web:dev:pglite": "cd apps/web && bun run dev:pglite",
     "dev": "turbo dev",
     "build": "turbo build",
     "sandbox:snapshot-base": "bun run scripts/vercel-refresh-base-snapshot.ts",

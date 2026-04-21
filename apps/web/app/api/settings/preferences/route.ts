@@ -28,7 +28,10 @@ interface UpdatePreferencesRequest {
 export async function GET(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   const preferences = sanitizeUserPreferencesForSession(
     await getUserPreferences(session.user.id),
@@ -41,7 +44,10 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   let body: UpdatePreferencesRequest;
   try {
@@ -51,7 +57,7 @@ export async function PATCH(req: Request) {
   }
 
   if (body.defaultSandboxType !== undefined) {
-    const validTypes = ["vercel"];
+    const validTypes = ["local-fs"];
     if (
       typeof body.defaultSandboxType !== "string" ||
       !validTypes.includes(body.defaultSandboxType)

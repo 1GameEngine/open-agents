@@ -6,7 +6,11 @@ interface TestSessionRecord {
   id: string;
   userId: string;
   lifecycleVersion: number;
-  sandboxState: { type: "local-fs"; sandboxDir: string; currentBranch: string } | null;
+  sandboxState: {
+    type: "local-fs";
+    sandboxDir: string;
+    currentBranch: string;
+  } | null;
   vercelProjectId: string | null;
   vercelProjectName: string | null;
   vercelTeamId: string | null;
@@ -89,18 +93,33 @@ mock.module("@open-harness/sandbox/local-fs", () => ({
     }),
     exec: async (command: string) => {
       execCalls.push({ command });
-      return { success: true, exitCode: 0, stdout: "/root", stderr: "", truncated: false };
+      return {
+        success: true,
+        exitCode: 0,
+        stdout: "/root",
+        stderr: "",
+        truncated: false,
+      };
     },
     writeFile: async () => {},
     stop: async () => {},
   }),
-  connectLocalFsSandbox: (state: { sandboxDir: string; currentBranch: string }) => ({
+  connectLocalFsSandbox: (state: {
+    sandboxDir: string;
+    currentBranch: string;
+  }) => ({
     sandboxDir: state.sandboxDir,
     workingDirectory: state.sandboxDir,
     getState: () => ({ type: "local-fs" as const, ...state }),
     exec: async (command: string) => {
       execCalls.push({ command });
-      return { success: true, exitCode: 0, stdout: "", stderr: "", truncated: false };
+      return {
+        success: true,
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        truncated: false,
+      };
     },
     writeFile: async () => {},
     stop: async () => {},

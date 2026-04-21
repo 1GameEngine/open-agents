@@ -10,7 +10,7 @@ let currentSession: {
 const preferencesState = {
   defaultModelId: "anthropic/claude-haiku-4.5",
   defaultSubagentModelId: null as string | null,
-  defaultSandboxType: "vercel" as const,
+  defaultSandboxType: "local-fs" as const,
   defaultDiffMode: "unified" as const,
   autoCommitPush: false,
   autoCreatePr: false,
@@ -27,8 +27,20 @@ const updateCalls: Array<Record<string, unknown>> = [];
 mock.module("@/lib/auth/api-key", () => ({
   requireApiKey: async () => {
     const _s = currentSession;
-    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
-    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+    if (!_s)
+      return {
+        ok: false as const,
+        response: Response.json(
+          { error: "Not authenticated" },
+          { status: 401 },
+        ),
+      };
+    return {
+      ok: true as const,
+      userId: _s.user.id,
+      username: _s.user.id,
+      authProvider: "api-key" as const,
+    };
   },
 }));
 
@@ -88,7 +100,7 @@ describe("/api/settings/preferences", () => {
     expect(response.status).toBe(200);
     expect(body.preferences.autoCommitPush).toBe(false);
     expect(body.preferences.autoCreatePr).toBe(false);
-    expect(body.preferences.defaultSandboxType).toBe("vercel");
+    expect(body.preferences.defaultSandboxType).toBe("local-fs");
     expect(body.preferences.globalSkillRefs).toEqual([]);
   });
 

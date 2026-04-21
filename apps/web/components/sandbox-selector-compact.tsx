@@ -16,7 +16,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 
-export type SandboxType = "vercel";
+export type SandboxType = "local-fs";
 
 interface SandboxOption {
   id: SandboxType;
@@ -26,13 +26,13 @@ interface SandboxOption {
 
 export const SANDBOX_OPTIONS: SandboxOption[] = [
   {
-    id: "vercel",
-    name: "Vercel",
-    description: "Cloud sandbox",
+    id: "local-fs",
+    name: "Local FS",
+    description: "Runs in a directory on this machine (self-hosted)",
   },
 ];
 
-export const DEFAULT_SANDBOX_TYPE: SandboxType = "vercel";
+export const DEFAULT_SANDBOX_TYPE: SandboxType = "local-fs";
 
 interface SandboxSelectorCompactProps {
   value: SandboxType;

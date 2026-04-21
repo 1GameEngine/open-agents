@@ -13,7 +13,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs/promises";
-import * as path from "path";
 import type { LocalFsSandbox } from "@open-harness/sandbox/local-fs";
 
 const execFileAsync = promisify(execFile);
@@ -37,9 +36,7 @@ function validateRepoUrl(repoUrl: string): void {
     throw new Error(`Invalid repository URL: "${repoUrl}"`);
   }
   if (parsed.protocol !== "https:" || parsed.hostname !== "github.com") {
-    throw new Error(
-      `Only GitHub HTTPS URLs are supported (got: "${repoUrl}")`,
-    );
+    throw new Error(`Only GitHub HTTPS URLs are supported (got: "${repoUrl}")`);
   }
 }
 
@@ -71,9 +68,13 @@ export async function cloneRepoToSandbox(
   const entries = await fs.readdir(targetDir);
   if (entries.length > 0) {
     // Already cloned — just ensure we're on the right branch
-    await execFileAsync("git", ["-C", targetDir, "fetch", "--quiet", "origin"], {
-      env: buildGitEnv(githubToken),
-    });
+    await execFileAsync(
+      "git",
+      ["-C", targetDir, "fetch", "--quiet", "origin"],
+      {
+        env: buildGitEnv(githubToken),
+      },
+    );
     if (isNewBranch) {
       await execFileAsync(
         "git",
@@ -81,11 +82,9 @@ export async function cloneRepoToSandbox(
         { env: buildGitEnv(githubToken) },
       );
     } else {
-      await execFileAsync(
-        "git",
-        ["-C", targetDir, "checkout", safeBranch],
-        { env: buildGitEnv(githubToken) },
-      );
+      await execFileAsync("git", ["-C", targetDir, "checkout", safeBranch], {
+        env: buildGitEnv(githubToken),
+      });
     }
     return safeBranch;
   }
@@ -128,9 +127,7 @@ export async function cloneRepoToSandbox(
   return safeBranch;
 }
 
-function buildGitEnv(
-  githubToken?: string,
-): NodeJS.ProcessEnv {
+function buildGitEnv(githubToken?: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     GIT_TERMINAL_PROMPT: "0",

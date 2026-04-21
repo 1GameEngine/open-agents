@@ -50,7 +50,10 @@ export async function POST(req: Request) {
   // 1. Validate session
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
 
   // 2. Parse and validate request
   let body: CreatePRRequest;

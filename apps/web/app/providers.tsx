@@ -15,7 +15,12 @@ import { Toaster, toast } from "sonner";
 import { SWRConfig } from "swr";
 import { GitHubReconnectGate } from "@/components/github-reconnect-gate";
 import { useSession } from "@/hooks/use-session";
+import { installSelfHostedFetch } from "@/lib/install-self-hosted-fetch";
 import { FetchError } from "@/lib/swr";
+
+if (typeof window !== "undefined") {
+  installSelfHostedFetch();
+}
 
 const THEME_STORAGE_KEY = "open-agents-theme";
 const VERCEL_RECONNECT_ATTEMPT_STORAGE_KEY =

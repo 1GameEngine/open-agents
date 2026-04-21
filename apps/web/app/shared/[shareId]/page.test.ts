@@ -89,7 +89,7 @@ mock.module("@/lib/db/user-preferences", () => ({
   getUserPreferences: async () => ({
     defaultModelId: "anthropic/claude-opus-4.6",
     defaultSubagentModelId: null,
-    defaultSandboxType: "vercel",
+    defaultSandboxType: "local-fs",
     defaultDiffMode: "unified",
     autoCommitPush: false,
     modelVariants: userModelVariants,
@@ -99,8 +99,20 @@ mock.module("@/lib/db/user-preferences", () => ({
 mock.module("@/lib/auth/api-key", () => ({
   requireApiKey: async () => {
     const _s = viewerSession;
-    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
-    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+    if (!_s)
+      return {
+        ok: false as const,
+        response: Response.json(
+          { error: "Not authenticated" },
+          { status: 401 },
+        ),
+      };
+    return {
+      ok: true as const,
+      userId: _s.user.id,
+      username: _s.user.id,
+      authProvider: "api-key" as const,
+    };
   },
 }));
 
@@ -110,7 +122,13 @@ mock.module("@/lib/session/get-server-session", () => ({
   getServerSession: async () => {
     const _s = viewerSession;
     if (!_s) return null;
-    return { user: { id: _s.user.id, username: _s.user.id, authProvider: "api-key" as const } };
+    return {
+      user: {
+        id: _s.user.id,
+        username: _s.user.id,
+        authProvider: "api-key" as const,
+      },
+    };
   },
 }));
 

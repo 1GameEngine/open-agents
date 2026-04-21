@@ -176,7 +176,10 @@ EXAMPLES:
         try {
           const stat = await fs.stat(searchDir);
           if (!stat.isDirectory()) {
-            return { success: false, error: `"${searchDir}" is not a directory` };
+            return {
+              success: false,
+              error: `"${searchDir}" is not a directory`,
+            };
           }
         } catch {
           return {

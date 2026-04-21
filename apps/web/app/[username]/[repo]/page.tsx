@@ -122,7 +122,8 @@ export default async function RepoPage({ params }: RepoPageProps) {
       autoCreatePrOverride: preferences.autoCommitPush
         ? preferences.autoCreatePr
         : false,
-      sandboxState: { type: preferences.defaultSandboxType },
+      // Self-hosted: sandbox is created lazily via POST /api/sandbox
+      sandboxState: null,
       lifecycleState: "provisioning",
       lifecycleVersion: 0,
     },

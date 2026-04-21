@@ -72,7 +72,9 @@ describe("/api/sessions/[sessionId]/pr-deployment", () => {
 
     expect(response.status).toBe(200);
     expect(body.deploymentUrl).toBeNull();
-    expect(findLatestVercelDeploymentUrlForPullRequestMock).toHaveBeenCalledTimes(0);
+    expect(
+      findLatestVercelDeploymentUrlForPullRequestMock,
+    ).toHaveBeenCalledTimes(0);
   });
 
   test("returns null when session has no repo info", async () => {
@@ -106,7 +108,9 @@ describe("/api/sessions/[sessionId]/pr-deployment", () => {
 
     expect(response.status).toBe(200);
     expect(body.deploymentUrl).toBe("https://pr-7.vercel.app");
-    expect(findLatestVercelDeploymentUrlForPullRequestMock).toHaveBeenCalledWith({
+    expect(
+      findLatestVercelDeploymentUrlForPullRequestMock,
+    ).toHaveBeenCalledWith({
       owner: "vercel",
       repo: "open-harness",
       prNumber: 7,
@@ -143,7 +147,9 @@ describe("/api/sessions/[sessionId]/pr-deployment", () => {
 
     expect(response.status).toBe(200);
     expect(body.deploymentUrl).toBeNull();
-    expect(findLatestVercelDeploymentUrlForPullRequestMock).toHaveBeenCalledTimes(0);
+    expect(
+      findLatestVercelDeploymentUrlForPullRequestMock,
+    ).toHaveBeenCalledTimes(0);
   });
 
   test("does not return failedDeploymentUrl for PR-based lookups", async () => {

@@ -45,7 +45,10 @@ function jsonError(error: string, status: number) {
 export async function GET(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -63,7 +66,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -120,7 +126,10 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }
@@ -195,7 +204,10 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const authResult = await requireApiKey();
   if (!authResult.ok) return authResult.response;
-  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
+  const session = {
+    authProvider: authResult.authProvider,
+    user: { id: authResult.userId, username: authResult.username },
+  };
   if (!session?.user) {
     return jsonError("Not authenticated", 401);
   }

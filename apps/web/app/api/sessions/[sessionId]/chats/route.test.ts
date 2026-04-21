@@ -37,13 +37,6 @@ let ownedSessionResult: OwnedSessionResult = {
   ok: true,
   sessionRecord: { id: "session-1" },
 };
-let currentSession: {
-  authProvider?: "vercel" | "github";
-  user: { id: string; email?: string; username?: string; avatar?: string };
-} | null = {
-  user: { id: "user-1" },
-};
-
 let chatSummaries: ChatSummary[] = [{ id: "chat-1", title: "Chat 1" }];
 let existingChat: ChatRecord | null = null;
 let createdChat: ChatRecord = {
@@ -104,7 +97,7 @@ mock.module("@/lib/db/user-preferences", () => ({
   getUserPreferences: async () => ({
     defaultModelId: "model-default",
     defaultSubagentModelId: null,
-    defaultSandboxType: "vercel",
+    defaultSandboxType: "local-fs",
     defaultDiffMode: "unified",
     autoCommitPush: false,
     autoCreatePr: false,
@@ -140,7 +133,6 @@ describe("/api/sessions/[sessionId]/chats", () => {
       ok: true,
       sessionRecord: { id: "session-1" },
     };
-    currentSession = { user: { id: "user-1" } };
     chatSummaries = [{ id: "chat-1", title: "Chat 1" }];
     existingChat = null;
     createdChat = {

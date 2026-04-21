@@ -426,3 +426,26 @@ export const usageEvents = pgTable("usage_events", {
 
 export type UsageEvent = typeof usageEvents.$inferSelect;
 export type NewUsageEvent = typeof usageEvents.$inferInsert;
+
+// API Keys — used for self-hosted API key authentication (replaces OAuth)
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** SHA-256 hex digest of the raw key — never store the raw key */
+    keyHash: text("key_hash").notNull(),
+    name: text("name").notNull().default("default"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastUsedAt: timestamp("last_used_at"),
+    expiresAt: timestamp("expires_at"),
+  },
+  (table) => [
+    uniqueIndex("api_keys_key_hash_idx").on(table.keyHash),
+    index("api_keys_user_id_idx").on(table.userId),
+  ],
+);
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;

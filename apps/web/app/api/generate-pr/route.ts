@@ -1,5 +1,3 @@
-import { checkBotId } from "botid/server";
-import { botIdConfig } from "@/lib/botid";
 import { connectSandbox } from "@open-harness/sandbox";
 import { gateway, generateText } from "ai";
 import {
@@ -20,7 +18,7 @@ import { generatePullRequestContentFromSandbox } from "@/lib/git/pr-content";
 import { getUserGitHubToken } from "@/lib/github/user-token";
 import { getAppCoAuthorTrailer } from "@/lib/github/app-auth";
 import { isSandboxActive } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 // Allow up to 2 minutes for AI generation and git operations
 export const maxDuration = 120;
@@ -39,16 +37,9 @@ interface GeneratePRRequest {
 
 export async function POST(req: Request) {
   // 1. Validate session
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  const botVerification = await checkBotId(botIdConfig);
-  if (botVerification.isBot) {
-    return Response.json({ error: "Access denied" }, { status: 403 });
-  }
-
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   // 2. Parse request
   let body: GeneratePRRequest;
   try {
@@ -246,7 +237,7 @@ export async function POST(req: Request) {
   if (shouldCreateBranch) {
     const generatedBranch = generateBranchName(
       session.user.username,
-      session.user.name,
+      null,
     );
     const checkoutResult = await sandbox.exec(
       `git checkout -b ${generatedBranch}`,

@@ -1,4 +1,5 @@
 import type { Dirent } from "fs";
+export type { Dirent };
 
 /**
  * The type of sandbox environment.
@@ -57,6 +58,7 @@ export interface SandboxHooks {
 export interface SandboxStats {
   isDirectory(): boolean;
   isFile(): boolean;
+  isSymbolicLink(): boolean;
   size: number;
   mtimeMs: number;
 }

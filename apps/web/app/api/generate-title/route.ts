@@ -1,8 +1,6 @@
-import { checkBotId } from "botid/server";
-import { botIdConfig } from "@/lib/botid";
 import { gateway, generateText } from "ai";
 import { z } from "zod";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 /**
  * Generates a short, descriptive session title from a user message using AI.
@@ -41,16 +39,9 @@ const generateTitleRequestSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  const botVerification = await checkBotId(botIdConfig);
-  if (botVerification.isBot) {
-    return Response.json({ error: "Access denied" }, { status: 403 });
-  }
-
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   let body: unknown;
   try {
     body = await req.json();

@@ -1,6 +1,6 @@
 import { getChatById, getSessionById } from "@/lib/db/sessions";
 import { isSandboxActive } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 export type ResponseFormat = "json" | "text";
 
@@ -13,6 +13,8 @@ type AuthenticatedUserResult =
   | {
       ok: true;
       userId: string;
+      username: string;
+      authProvider: "api-key";
     }
   | {
       ok: false;
@@ -71,20 +73,9 @@ function toErrorResponse(
 }
 
 export async function requireAuthenticatedUser(
-  format: ResponseFormat = "json",
+  _format: ResponseFormat = "json",
 ): Promise<AuthenticatedUserResult> {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return {
-      ok: false,
-      response: toErrorResponse("Not authenticated", 401, format),
-    };
-  }
-
-  return {
-    ok: true,
-    userId: session.user.id,
-  };
+  return requireApiKey();
 }
 
 export async function requireOwnedSessionChat(

@@ -5,7 +5,7 @@ import {
   parseGitHubUrl,
 } from "@/lib/github/client";
 import { getUserGitHubToken } from "@/lib/github/user-token";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 interface CreatePRRequest {
   sessionId: string;
@@ -48,10 +48,9 @@ function buildGitHubCompareUrl(params: {
 
 export async function POST(req: Request) {
   // 1. Validate session
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   // 2. Parse and validate request
   let body: CreatePRRequest;

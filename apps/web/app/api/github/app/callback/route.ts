@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { encrypt } from "@/lib/crypto";
 import { getGitHubAccount, upsertGitHubAccount } from "@/lib/db/accounts";
 import { syncUserInstallations } from "@/lib/github/installations-sync";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 interface GitHubUser {
   id: number;
@@ -147,7 +147,9 @@ export async function GET(req: Request): Promise<Response> {
     cookieStore.get("github_app_install_redirect_to")?.value,
   );
 
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user?.id) {
     const signinUrl = new URL("/api/auth/signin/vercel", req.url);
     signinUrl.searchParams.set(

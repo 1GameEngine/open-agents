@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getInstallationByUserAndId } from "@/lib/db/installations";
 import { listUserInstallationRepositories } from "@/lib/github/installation-repos";
 import { getUserGitHubToken } from "@/lib/github/user-token";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 function parseInstallationId(value: string | null): number | null {
   if (!value) {
@@ -18,7 +18,9 @@ function parseInstallationId(value: string | null): number | null {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

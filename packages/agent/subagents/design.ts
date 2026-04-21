@@ -1,14 +1,12 @@
 import type { LanguageModel } from "ai";
 import { gateway, stepCountIs, ToolLoopAgent } from "ai";
 import { z } from "zod";
-import { bashTool } from "../tools/bash";
 import { globTool } from "../tools/glob";
 import { grepTool } from "../tools/grep";
 import { readFileTool } from "../tools/read";
 import { editFileTool, writeFileTool } from "../tools/write";
 import type { SandboxExecutionContext } from "../types";
 import {
-  SUBAGENT_BASH_RULES,
   SUBAGENT_COMPLETE_TASK_RULES,
   SUBAGENT_NO_QUESTIONS_RULES,
   SUBAGENT_REMINDER,
@@ -73,9 +71,7 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 Remember: You are capable of extraordinary creative work. Don't hold back — show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
 
 ## TOOLS
-You have full access to file operations (read, write, edit, grep, glob) and bash commands. Use them to complete your task.
-
-${SUBAGENT_BASH_RULES}`;
+You have full access to file operations (read, write, edit, grep, glob). Use them to complete your task.`;
 
 const callOptionsSchema = z.object({
   task: z.string().describe("Short description of the task"),
@@ -97,7 +93,6 @@ export const designSubagent = new ToolLoopAgent({
     edit: editFileTool(),
     grep: grepTool(),
     glob: globTool(),
-    bash: bashTool(),
   },
   stopWhen: stepCountIs(SUBAGENT_STEP_LIMIT),
   callOptionsSchema,

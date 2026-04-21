@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { decrypt } from "@/lib/crypto";
 import { deleteGitHubAccount, getGitHubAccount } from "@/lib/db/accounts";
 import { deleteInstallationsByUserId } from "@/lib/db/installations";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 export async function POST(): Promise<Response> {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
   }

@@ -12,7 +12,6 @@ import type { SkillMetadata } from "./skills/types";
 import { buildSystemPrompt } from "./system-prompt";
 import {
   askUserQuestionTool,
-  bashTool,
   editFileTool,
   globTool,
   grepTool,
@@ -69,7 +68,6 @@ const tools = {
   edit: editFileTool(),
   grep: grepTool(),
   glob: globTool(),
-  bash: bashTool(),
   task: taskTool,
   ask_user_question: askUserQuestionTool,
   skill: skillTool,

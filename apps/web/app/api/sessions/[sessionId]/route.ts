@@ -6,7 +6,7 @@ import {
 } from "@/lib/db/sessions";
 import { archiveSession } from "@/lib/sandbox/archive-session";
 import { hasRuntimeSandboxState } from "@/lib/sandbox/utils";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 interface UpdateSessionRequest {
   title?: string;
@@ -21,10 +21,9 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);
@@ -44,10 +43,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);
@@ -124,10 +122,9 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   const { sessionId } = await params;
   const existingSession = await getSessionById(sessionId);

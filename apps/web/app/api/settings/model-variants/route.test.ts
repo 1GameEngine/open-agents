@@ -54,8 +54,12 @@ function createProviderOptionsWithExactSize(
   };
 }
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = currentSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 mock.module("@/lib/db/user-preferences", () => ({
@@ -98,7 +102,7 @@ describe("/api/settings/model-variants", () => {
     expect(response.status).toBe(401);
   });
 
-  test("GET hides Opus-backed variants for managed trial users", async () => {
+  test("GET shows all variants including Opus for api-key users (no managed trial restrictions)", async () => {
     preferences.modelVariants = [
       {
         id: "variant:user-opus",
@@ -107,24 +111,16 @@ describe("/api/settings/model-variants", () => {
         providerOptions: {},
       },
     ];
-    currentSession = {
-      authProvider: "vercel",
-      user: {
-        id: "user-1",
-        username: "alice",
-        email: "alice@example.com",
-      },
-    };
-
+    // Self-hosted: api-key users are never subject to managed-template trial limits
     const { GET } = await routeModulePromise;
     const response = await GET(
-      new Request("https://open-agents.dev/api/settings/model-variants"),
+      new Request("https://self-hosted.example/api/settings/model-variants"),
     );
     const body = (await response.json()) as { modelVariants: ModelVariant[] };
-
-    expect(body.modelVariants.map((variant) => variant.id)).toEqual([
-      "variant:builtin:gpt-5.4-xhigh",
-    ]);
+    const ids = body.modelVariants.map((v) => v.id);
+    // Both the builtin and the user-defined Opus variant should be visible
+    expect(ids).toContain("variant:user-opus");
+    expect(ids).toContain("variant:builtin:gpt-5.4-xhigh");
   });
 
   test("POST rejects invalid JSON body", async () => {
@@ -166,19 +162,11 @@ describe("/api/settings/model-variants", () => {
     expect(body.modelVariants[2]?.name).toBe("OpenAI Medium");
   });
 
-  test("POST rejects Opus-backed variants for managed trial users", async () => {
-    currentSession = {
-      authProvider: "vercel",
-      user: {
-        id: "user-1",
-        username: "alice",
-        email: "alice@example.com",
-      },
-    };
-
+  test("POST allows Opus-backed variants for api-key users (no managed trial restrictions)", async () => {
+    // Self-hosted: api-key users can create any model variant including Opus
     const { POST } = await routeModulePromise;
     const response = await POST(
-      new Request("https://open-agents.dev/api/settings/model-variants", {
+      new Request("https://self-hosted.example/api/settings/model-variants", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -188,8 +176,9 @@ describe("/api/settings/model-variants", () => {
         }),
       }),
     );
-
-    expect(response.status).toBe(403);
+    // Should NOT be rejected with 403 in self-hosted mode
+    expect(response.status).not.toBe(403);
+    expect(response.ok).toBe(true);
   });
 
   test("POST accepts provider options exactly at 16KB", async () => {

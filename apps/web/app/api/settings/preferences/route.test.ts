@@ -24,8 +24,12 @@ const preferencesState = {
 
 const updateCalls: Array<Record<string, unknown>> = [];
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = currentSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 mock.module("@/lib/db/user-preferences", () => ({
@@ -88,13 +92,10 @@ describe("/api/settings/preferences", () => {
     expect(body.preferences.globalSkillRefs).toEqual([]);
   });
 
-  test("GET hides Opus defaults for managed trial users", async () => {
+  test("GET shows Opus defaults for api-key users (no managed trial restrictions)", async () => {
     const { GET } = await routeModulePromise;
 
-    currentSession = {
-      authProvider: "vercel",
-      user: { id: "user-1", email: "person@example.com" },
-    };
+    // Self-hosted: api-key users always see their actual preferences, including Opus models
     preferencesState.defaultModelId = "anthropic/claude-opus-4.6";
     preferencesState.defaultSubagentModelId =
       "variant:builtin:claude-opus-4.6-high";
@@ -108,15 +109,18 @@ describe("/api/settings/preferences", () => {
     ];
 
     const response = await GET(
-      new Request("https://open-agents.dev/api/settings/preferences"),
+      new Request("https://self-hosted.example/api/settings/preferences"),
     );
     const body = (await response.json()) as {
       preferences: typeof preferencesState;
     };
 
-    expect(body.preferences.defaultModelId).toBe("openai/gpt-5.4");
-    expect(body.preferences.defaultSubagentModelId).toBe("openai/gpt-5.4");
-    expect(body.preferences.modelVariants).toEqual([]);
+    // Self-hosted: Opus defaults are NOT hidden
+    expect(body.preferences.defaultModelId).toBe("anthropic/claude-opus-4.6");
+    expect(body.preferences.defaultSubagentModelId).toBe(
+      "variant:builtin:claude-opus-4.6-high",
+    );
+    expect(body.preferences.modelVariants).toHaveLength(1);
   });
 
   test("PATCH rejects invalid sandbox types", async () => {

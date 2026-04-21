@@ -51,8 +51,12 @@ mock.module("workflow/api", () => ({
   }),
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentAuthSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = currentAuthSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 mock.module("@/lib/db/sessions", () => ({

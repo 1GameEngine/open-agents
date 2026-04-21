@@ -1,35 +1,35 @@
-import { cookies } from "next/headers";
+/**
+ * GET /api/auth/info
+ *
+ * Returns the authenticated user's info based on the API key in the
+ * Authorization header. In self-hosted mode there is no OAuth provider,
+ * so Vercel reconnect fields are always false.
+ */
 import type { NextRequest } from "next/server";
+import { requireApiKey } from "@/lib/auth/api-key";
 import { getGitHubAccount } from "@/lib/db/accounts";
 import { getInstallationsByUserId } from "@/lib/db/installations";
 import { userExists } from "@/lib/db/users";
-import { SESSION_COOKIE_NAME } from "@/lib/session/constants";
-import { getSessionFromReq } from "@/lib/session/server";
 import type { SessionUserInfo } from "@/lib/session/types";
 
 const UNAUTHENTICATED: SessionUserInfo = { user: undefined };
 
-export async function GET(req: NextRequest) {
-  const session = await getSessionFromReq(req);
-
-  if (!session?.user?.id) {
-    return Response.json(UNAUTHENTICATED);
+export async function GET(_req: NextRequest) {
+  const auth = await requireApiKey();
+  if (!auth.ok) {
+    return Response.json(UNAUTHENTICATED, { status: 401 });
   }
 
-  // Run the user-existence check in parallel with the GitHub queries
-  // so there is zero added latency on the happy path.
+  const userId = auth.userId;
+
   const [exists, ghAccount, installations] = await Promise.all([
-    userExists(session.user.id),
-    getGitHubAccount(session.user.id),
-    getInstallationsByUserId(session.user.id),
+    userExists(userId),
+    getGitHubAccount(userId),
+    getInstallationsByUserId(userId),
   ]);
 
-  // The session cookie (JWE) is self-contained and can outlive the user record.
-  // If the user no longer exists, clear the stale cookie.
   if (!exists) {
-    const store = await cookies();
-    store.delete(SESSION_COOKIE_NAME);
-    return Response.json(UNAUTHENTICATED);
+    return Response.json(UNAUTHENTICATED, { status: 401 });
   }
 
   const hasGitHubAccount = ghAccount !== null;
@@ -37,11 +37,17 @@ export async function GET(req: NextRequest) {
   const hasGitHub = hasGitHubAccount || hasGitHubInstallations;
 
   const data: SessionUserInfo = {
-    user: session.user,
-    authProvider: session.authProvider,
+    user: {
+      id: userId,
+      username: auth.username,
+      email: undefined,
+      avatar: "",
+    },
+    authProvider: "github",
     hasGitHub,
     hasGitHubAccount,
     hasGitHubInstallations,
+    vercelReconnectRequired: false,
   };
 
   return Response.json(data);

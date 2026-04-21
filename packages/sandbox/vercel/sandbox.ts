@@ -814,6 +814,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
     return {
       isDirectory: () => isDir,
       isFile: () => !isDir,
+      isSymbolicLink: () => fileType === "symbolic link",
       size,
       mtimeMs,
     };

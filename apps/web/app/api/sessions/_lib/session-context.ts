@@ -1,5 +1,5 @@
 import * as sessionsDb from "@/lib/db/sessions";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 
 export type SessionRecord = NonNullable<
   Awaited<ReturnType<typeof sessionsDb.getSessionById>>
@@ -12,6 +12,8 @@ type AuthenticatedUserResult =
   | {
       ok: true;
       userId: string;
+      username: string;
+      authProvider: "api-key";
     }
   | {
       ok: false;
@@ -63,18 +65,7 @@ function toErrorResponse(message: string, status: number): Response {
 }
 
 export async function requireAuthenticatedUser(): Promise<AuthenticatedUserResult> {
-  const session = await getServerSession();
-  if (!session?.user) {
-    return {
-      ok: false,
-      response: toErrorResponse("Not authenticated", 401),
-    };
-  }
-
-  return {
-    ok: true,
-    userId: session.user.id,
-  };
+  return requireApiKey();
 }
 
 export async function requireOwnedSession(

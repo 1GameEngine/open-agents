@@ -18,13 +18,9 @@ let processListOutput = "";
 let portProbeStatusCode: string | null = null;
 let lastLaunchCommand: string | null = null;
 let lastLaunchCwd: string | null = null;
-let currentAuthSession: {
-  authProvider?: "vercel" | "github";
-  user: {
-    id: string;
-    email?: string;
-  };
-} | null = null;
+
+// Controls whether requireAuthenticatedUser (and requireApiKey) succeeds
+let authOk = true;
 
 function successResult(stdout = "") {
   return {
@@ -53,10 +49,15 @@ function removeProcessFromList(pid: string) {
     .join("\n");
 }
 
-const requireAuthenticatedUserMock = mock(async () => ({
-  ok: true as const,
-  userId: "user-1",
-}));
+const requireAuthenticatedUserMock = mock(async () => {
+  if (!authOk) {
+    return {
+      ok: false as const,
+      response: Response.json({ error: "Not authenticated" }, { status: 401 }),
+    };
+  }
+  return { ok: true as const, userId: "user-1" };
+});
 const requireOwnedSessionWithSandboxGuardMock = mock(async () => ({
   ok: true as const,
   sessionRecord: currentSessionRecord,
@@ -133,8 +134,18 @@ mock.module("@open-harness/sandbox", () => ({
   connectSandbox: connectSandboxMock,
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => currentAuthSession,
+// requireApiKey delegates to requireAuthenticatedUserMock so tests stay in sync
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const result = await requireAuthenticatedUserMock();
+    if (!result.ok) return result;
+    return {
+      ok: true as const,
+      userId: result.userId,
+      username: result.userId,
+      authProvider: "api-key" as const,
+    };
+  },
 }));
 
 const routeModulePromise = import("./route");
@@ -153,7 +164,7 @@ describe("/api/sessions/[sessionId]/code-editor", () => {
     portProbeStatusCode = null;
     lastLaunchCommand = null;
     lastLaunchCwd = null;
-    currentAuthSession = null;
+    authOk = true;
     currentSessionRecord.sandboxState.expiresAt = Date.now() + 60_000;
     requireAuthenticatedUserMock.mockClear();
     requireOwnedSessionWithSandboxGuardMock.mockClear();
@@ -234,33 +245,21 @@ describe("/api/sessions/[sessionId]/code-editor", () => {
     expect(execDetachedMock).toHaveBeenCalledTimes(0);
   });
 
-  test("POST returns 403 for managed-template trial users", async () => {
-    currentAuthSession = {
-      authProvider: "vercel",
-      user: {
-        id: "user-1",
-        email: "person@example.com",
-      },
-    };
+  test("self-hosted mode: POST code-editor is not restricted for api-key users", async () => {
+    // In self-hosted mode, api-key users are never subject to managed-template trial limits
     const { POST } = await routeModulePromise;
-    const expectedError =
-      "This hosted deployment does not allow the code editor for non-Vercel trial accounts. Deploy your own copy for full controls.";
 
     const response = await POST(
       new Request(
-        "https://open-agents.dev/api/sessions/session-1/code-editor",
-        {
-          method: "POST",
-        },
+        "https://self-hosted.example/api/sessions/session-1/code-editor",
+        { method: "POST" },
       ),
       createRouteContext(),
     );
-    const body = (await response.json()) as { error: string };
 
-    expect(response.status).toBe(403);
-    expect(body.error).toBe(expectedError);
-    expect(connectSandboxMock).toHaveBeenCalledTimes(0);
-    expect(execDetachedMock).toHaveBeenCalledTimes(0);
+    // Should NOT return 403 — self-hosted has no trial restrictions
+    expect(response.status).not.toBe(403);
+    expect(connectSandboxMock).toHaveBeenCalledTimes(1);
   });
 
   test("DELETE does not claim success when only another app is using the editor port", async () => {

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -36,17 +35,9 @@ const themeInitializationScript = `
 })();
 `;
 
-const isPreviewDeployment = process.env.VERCEL_ENV === "preview";
-const faviconPath = isPreviewDeployment
-  ? "/favicon-preview.svg"
-  : "/favicon.ico";
-const metadataBase =
-  process.env.VERCEL_ENV === "production" &&
-  process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
-    : process.env.VERCEL_URL
-      ? new URL(`https://${process.env.VERCEL_URL}`)
-      : new URL("https://open-agents.dev");
+const metadataBase = process.env.APP_URL
+  ? new URL(process.env.APP_URL)
+  : new URL("http://localhost:3000");
 
 export const metadata: Metadata = {
   metadataBase,
@@ -55,10 +46,10 @@ export const metadata: Metadata = {
     template: "%s | Open Agents",
   },
   description:
-    "Spawn coding agents that run infinitely in the cloud. Powered by AI SDK, Gateway, Sandbox, and Workflow SDK.",
+    "Self-hosted AI coding agents powered by AI SDK, Gateway, and Workflow SDK.",
   icons: {
-    icon: faviconPath,
-    shortcut: faviconPath,
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
   },
   twitter: {
     card: "summary_large_image",
@@ -79,7 +70,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeInitializationScript }}
         />
         <Providers>{children}</Providers>
-        <Analytics />
       </body>
     </html>
   );

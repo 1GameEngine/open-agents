@@ -1,6 +1,4 @@
-import { checkBotId } from "botid/server";
 import { createUIMessageStreamResponse, type InferUIMessageChunk } from "ai";
-import { botIdConfig } from "@/lib/botid";
 import { start } from "workflow/api";
 import type { WebAgentUIMessage } from "@/app/types";
 import {
@@ -23,7 +21,7 @@ import {
 import { getAllVariants } from "@/lib/model-variants";
 import { createCancelableReadableStream } from "@/lib/chat/create-cancelable-readable-stream";
 import { assistantFileLinkPrompt } from "@/lib/assistant-file-links";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import {
   isManagedTemplateTrialUser,
   MANAGED_TEMPLATE_TRIAL_MESSAGE_LIMIT,
@@ -31,7 +29,6 @@ import {
 } from "@/lib/managed-template-trial";
 import { buildActiveLifecycleUpdate } from "@/lib/sandbox/lifecycle";
 import {
-  requireAuthenticatedUser,
   requireOwnedSessionChat,
 } from "./_lib/chat-context";
 import { resolveChatModelSelection } from "./_lib/model-selection";
@@ -57,18 +54,10 @@ function getLatestUserMessage(messages: WebAgentUIMessage[]) {
 
 export async function POST(req: Request) {
   // 1. Validate session
-  const authResult = await requireAuthenticatedUser();
-  if (!authResult.ok) {
-    return authResult.response;
-  }
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
   const userId = authResult.userId;
-  const session = await getServerSession();
-
-  const botVerification = await checkBotId(botIdConfig);
-  if (botVerification.isBot) {
-    return Response.json({ error: "Access denied" }, { status: 403 });
-  }
-
   const parsedBody = await parseChatRequestBody(req);
   if (!parsedBody.ok) {
     return parsedBody.response;

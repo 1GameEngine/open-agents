@@ -11,7 +11,6 @@ import {
 } from "@/app/lib/render-tool";
 import { DEFAULT_WORKING_DIRECTORY } from "@/lib/sandbox/config";
 import { ToolLayout } from "./tool-layout";
-import { BashRenderer } from "./renderers/bash-renderer";
 import { ReadRenderer } from "./renderers/read-renderer";
 import { WriteRenderer } from "./renderers/write-renderer";
 import { EditRenderer } from "./renderers/edit-renderer";
@@ -47,8 +46,6 @@ export function ToolCall({
   const approvalProps = { onApprove, onDeny };
 
   switch (part.type) {
-    case "tool-bash":
-      return <BashRenderer part={part} state={state} {...approvalProps} />;
     case "tool-read":
       return (
         <ReadRenderer part={part} state={state} cwd={cwd} {...approvalProps} />

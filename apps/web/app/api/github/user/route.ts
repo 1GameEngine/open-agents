@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "@/lib/session/get-server-session";
+import { requireApiKey } from "@/lib/auth/api-key";
 import { getUserGitHubToken } from "@/lib/github/user-token";
 import { fetchGitHubUser } from "@/lib/github/api";
 
 export async function GET() {
-  const session = await getServerSession();
+  const authResult = await requireApiKey();
+  if (!authResult.ok) return authResult.response;
+  const session = { authProvider: authResult.authProvider, user: { id: authResult.userId, username: authResult.username } };
 
   if (!session?.user?.id) {
     return NextResponse.json(

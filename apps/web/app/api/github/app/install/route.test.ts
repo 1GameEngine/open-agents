@@ -9,8 +9,12 @@ mock.module("arctic", () => ({
   generateState: () => "state-123",
 }));
 
-mock.module("@/lib/session/get-server-session", () => ({
-  getServerSession: async () => authSession,
+mock.module("@/lib/auth/api-key", () => ({
+  requireApiKey: async () => {
+    const _s = authSession;
+    if (!_s) return { ok: false as const, response: Response.json({ error: "Not authenticated" }, { status: 401 }) };
+    return { ok: true as const, userId: _s.user.id, username: _s.user.id, authProvider: "api-key" as const };
+  },
 }));
 
 mock.module("@/lib/db/accounts", () => ({

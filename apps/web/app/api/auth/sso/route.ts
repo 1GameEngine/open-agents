@@ -5,6 +5,13 @@ import { SELF_HOSTED_API_KEY_COOKIE_NAME } from "@/lib/session/constants";
 
 const MBBS_API_BASE_URL = process.env.MBBS_API_BASE_URL;
 
+/** 1game-server 接口的通用包装格式 */
+interface MbbsApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
 interface MbbsUserInfo {
   id: number | string;
   username: string;
@@ -40,15 +47,18 @@ export async function GET(req: NextRequest) {
   // 1. 向 1game-server 后端验证 Ticket（服务端对服务端）
   let userInfo: MbbsUserInfo;
   try {
+    // MBBS_API_BASE_URL 已含 /main/ 后缀（如 https://api.1game.design/main/）
     const verifyRes = await fetch(
-      `${MBBS_API_BASE_URL}/api/sso/verify?ticket=${encodeURIComponent(ticket)}`,
+      `${MBBS_API_BASE_URL.replace(/\/$/, '')}/sso/verify?ticket=${encodeURIComponent(ticket)}`,
     );
     if (!verifyRes.ok) {
       return NextResponse.redirect(
         new URL("/error?msg=invalid_ticket", req.url),
       );
     }
-    userInfo = (await verifyRes.json()) as MbbsUserInfo;
+    // 1game-server 全局拦截器会把所有响应包装为 { data: ..., success: true }
+    const verifyBody = (await verifyRes.json()) as MbbsApiResponse<MbbsUserInfo>;
+    userInfo = verifyBody.data;
   } catch {
     return NextResponse.redirect(
       new URL("/error?msg=sso_verify_failed", req.url),

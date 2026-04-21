@@ -1,6 +1,6 @@
 export interface Session {
   created: number;
-  authProvider: "vercel" | "github" | "api-key";
+  authProvider: "vercel" | "github" | "api-key" | "1game";
   user: {
     id: string;
     username: string;
@@ -12,7 +12,7 @@ export interface Session {
 
 export interface SessionUserInfo {
   user: Session["user"] | undefined;
-  authProvider?: "vercel" | "github" | "api-key";
+  authProvider?: "vercel" | "github" | "api-key" | "1game";
   hasGitHub?: boolean;
   hasGitHubAccount?: boolean;
   hasGitHubInstallations?: boolean;

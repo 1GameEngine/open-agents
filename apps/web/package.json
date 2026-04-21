@@ -8,7 +8,7 @@
     "dev:pglite:child": "NODE_ENV=development bun run scripts/run-with-env.ts bun run db:migrate:apply && NODE_ENV=development bun run scripts/run-with-env.ts bun run bootstrap && NODE_ENV=development bun run scripts/run-with-env.ts next dev",
     "build": "NODE_ENV=production bun run scripts/run-with-env.ts bun run db:migrate:apply && NODE_ENV=production bun run scripts/run-with-env.ts next build",
     "db:migrate:apply": "bun run scripts/run-with-env.ts bun run lib/db/migrate.ts",
-    "start": "next start",
+    "start": "NODE_ENV=production bun run scripts/run-with-env.ts next start",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",

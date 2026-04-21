@@ -56,8 +56,8 @@ function parseEnvFileContent(content: string) {
     }
 
     if (
-      rawValue.startsWith("\"") &&
-      rawValue.endsWith("\"") &&
+      rawValue.startsWith('"') &&
+      rawValue.endsWith('"') &&
       rawValue.length >= 2
     ) {
       const unquoted = rawValue.slice(1, -1);
@@ -65,7 +65,7 @@ function parseEnvFileContent(content: string) {
         .replace(/\\n/gu, "\n")
         .replace(/\\r/gu, "\r")
         .replace(/\\t/gu, "\t")
-        .replace(/\\"/gu, "\"");
+        .replace(/\\"/gu, '"');
       continue;
     }
 
@@ -115,11 +115,11 @@ async function run() {
     stdio: "inherit",
   });
 
-  await new Promise<void>((_, rejectPromise) => {
-    child.on("error", rejectPromise);
+  await new Promise<void>((_resolve, reject) => {
+    child.on("error", reject);
     child.on("exit", (code, signal) => {
       if (signal) {
-        rejectPromise(new Error(`Command terminated with signal: ${signal}`));
+        reject(new Error(`Command terminated with signal: ${signal}`));
         return;
       }
       process.exit(code ?? 1);

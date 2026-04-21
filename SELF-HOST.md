@@ -31,8 +31,17 @@ bun install
 
 ### 3. 配置环境变量
 
-进入 `apps/web` 目录，确认 `.env` 文件已存在（默认已随代码库提供测试配置）。
-如果需要自定义，可以参考 `.env.example`。
+进入 `apps/web` 目录，按环境创建配置文件：
+
+- 开发环境：`cp .env.dev.example .env.dev`
+- 生产环境：`cp .env.prod.example .env.prod`
+
+启动时会自动按 `NODE_ENV` 读取：
+- `development` -> `.env.dev`
+- `production` -> `.env.prod`
+- 如果对应文件不存在，回退到 `.env`
+
+如果你沿用旧流程，也可以继续使用 `.env`（参考 `.env.example`）。
 
 核心环境变量说明：
 - `DATABASE_URL` / `WORKFLOW_POSTGRES_URL`: 数据库连接字符串（默认连接本地 PGlite 端口 `5432`）。
@@ -107,7 +116,7 @@ bun run bootstrap
 ## 常见问题
 
 **Q: `dev:pglite` 启动失败，提示端口被占用？**
-A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env` 中的数据库 URL 端口。
+A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env.dev`（或你使用的 env 文件）中的数据库 URL 端口。
 
 **Q: 如何管理 API Key？**
 A: 系统提供了 RESTful API 端点来管理 API Key：

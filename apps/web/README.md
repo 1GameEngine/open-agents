@@ -10,20 +10,26 @@ The following environment variables are required:
 
 ## Local dev (self-hosted + PGlite)
 
-`apps/web/.env.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, and dev crypto / bootstrap keys. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in `apps/web/.env` from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
+`apps/web/.env.dev.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, and dev crypto / bootstrap keys. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in `apps/web/.env.dev` from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
 
 ```bash
 bun install
 cp apps/web/.env.example apps/web/.env
-# Edit apps/web/.env and set AI_GATEWAY_API_KEY=...
+cp apps/web/.env.dev.example apps/web/.env.dev
+# Edit apps/web/.env.dev and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 
-Or from **`apps/web`**: `cp .env.example .env` then `bun run dev:pglite`.
+Or from **`apps/web`**: `cp .env.dev.example .env.dev` then `bun run dev:pglite`.
+
+Env file selection is automatic at startup:
+- `NODE_ENV=development` (default for `bun run dev` / `bun run dev:pglite`) -> `.env.dev`
+- `NODE_ENV=production` (for `bun run build`) -> `.env.prod`
+- fallback when specific file is missing -> `.env`
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 
-For production, generate your own secrets and keys; do not reuse the example crypto values.
+For production, copy `apps/web/.env.prod.example` to `apps/web/.env.prod`, generate your own secrets and keys, and do not reuse dev values.
 
 ## Getting Started
 

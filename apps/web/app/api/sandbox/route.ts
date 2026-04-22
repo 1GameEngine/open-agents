@@ -30,7 +30,7 @@ import type { SandboxState } from "@open-harness/sandbox";
 
 /** Root directory for all session sandboxes */
 const SANDBOX_ROOT_DIR =
-  process.env.SANDBOX_ROOT_DIR ?? "/home/open-agents/sandboxes";
+  process.env.SANDBOX_ROOT_DIR ?? "/workspace/data/sandboxes";
 
 interface CreateSandboxRequest {
   repoUrl?: string;

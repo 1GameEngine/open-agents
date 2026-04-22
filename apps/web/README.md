@@ -20,13 +20,13 @@ This project uses four-layer env loading:
 
 ```bash
 bun install
-cp apps/web/.env.dev.example apps/web/.env.dev
 cp apps/web/.env.local.example apps/web/.env.local
+# Edit tracked apps/web/.env.dev only when you need dev-specific non-secret overrides.
 # Edit apps/web/.env.local and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 
-Or from **`apps/web`**: `cp .env.dev.example .env.dev && cp .env.local.example .env.local` then `bun run dev:pglite`.
+Or from **`apps/web`**: `cp .env.local.example .env.local` then `bun run dev:pglite`.
 
 Env loading is automatic at startup (difference override mode):
 - Base defaults: always load `.env` when present

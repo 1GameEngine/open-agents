@@ -34,7 +34,7 @@ bun install
 进入 `apps/web` 目录，环境文件按“一个基线 + 少量差量”维护：
 
 - 基线默认：`apps/web/.env`（已随仓库提供，可直接使用）
-- 开发差量模板：`cp .env.dev.example .env.dev`
+- 开发差量：`apps/web/.env.dev`（已随仓库提供，按需直接编辑）
 - 生产差量模板：`cp .env.prod.example .env.prod`
 
 如需本地私密变量（不进 git，如 `AI_GATEWAY_API_KEY`），额外创建本地覆盖文件：

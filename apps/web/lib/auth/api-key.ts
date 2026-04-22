@@ -33,26 +33,40 @@ export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
     return {
       ok: false,
       response: Response.json(
-        { error: "Missing or invalid Authorization header" },
+        {
+          error:
+            "Missing Authorization header. /api/models requires a self-hosted API key (Authorization: Bearer oha_...). AI_GATEWAY_API_KEY is only used server-side to fetch models from AI Gateway.",
+        },
         { status: 401 },
       ),
     };
   }
 
   const rawKey = authorization.slice("Bearer ".length).trim();
+
   if (!rawKey) {
     return {
       ok: false,
-      response: Response.json({ error: "Empty API key" }, { status: 401 }),
+      response: Response.json(
+        {
+          error:
+            "Empty Bearer token. Use Authorization: Bearer oha_... (self-hosted API key).",
+        },
+        { status: 401 },
+      ),
     };
   }
 
   const result = await validateApiKey(rawKey);
+
   if (!result) {
     return {
       ok: false,
       response: Response.json(
-        { error: "Invalid or expired API key" },
+        {
+          error:
+            "Invalid or expired self-hosted API key. Ensure your oha_ key exists in DB (bootstrap/api-keys) and matches Authorization: Bearer oha_....",
+        },
         { status: 401 },
       ),
     };

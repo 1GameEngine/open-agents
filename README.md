@@ -161,14 +161,22 @@ Recommended path: deploy this repo at the repo root on Vercel, then layer on aut
    bun install
    ```
 
-2. Create your local env file:
+2. Env layering is tracked in git out of the box:
 
    ```bash
-   cp apps/web/.env.example apps/web/.env
+   # already tracked: apps/web/.env, apps/web/.env.dev, apps/web/.env.prod
    ```
 
-3. Fill in the required values in `apps/web/.env`.
-4. Start the app:
+3. (Optional but recommended) add local secret overrides that stay out of git:
+
+   ```bash
+   cp apps/web/.env.local.example apps/web/.env.local
+   cp apps/web/.env.dev.local.example apps/web/.env.dev.local
+   cp apps/web/.env.prod.local.example apps/web/.env.prod.local
+   ```
+
+4. Fill shared defaults in `apps/web/.env`, keep non-secret env differences in `apps/web/.env.dev` / `apps/web/.env.prod`, and put secrets (for example `AI_GATEWAY_API_KEY`) in `apps/web/.env.local` or `apps/web/.env.*.local`.
+5. Start the app:
 
    ```bash
    bun run web

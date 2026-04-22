@@ -33,9 +33,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — keep secrets out of git (copy from .env.example)
-.env*
-!.env.example
+# env files
+# Track shared defaults and non-secret overlays for zero-config startup.
+# Keep local secret overrides out of git.
+.env.local
+.env.*.local
+!.env.local.example
+!.env.dev.local.example
+!.env.prod.local.example
 
 # vercel
 .vercel

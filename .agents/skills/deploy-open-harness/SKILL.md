@@ -12,7 +12,7 @@ Base your guidance on the current codebase, not on older Harness-era setup assum
 Before giving deployment advice, read these files if you have not already:
 
 - `README.md`
-- `apps/web/.env.example`
+- `apps/web/.env`
 - `apps/web/lib/db/client.ts`
 - `apps/web/lib/jwe/encrypt.ts`
 - `apps/web/lib/crypto.ts`

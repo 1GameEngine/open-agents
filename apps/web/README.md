@@ -10,20 +10,34 @@ The following environment variables are required:
 
 ## Local dev (self-hosted + PGlite)
 
-`apps/web/.env.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, and dev crypto / bootstrap keys. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in `apps/web/.env` from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
+This project uses four-layer env loading:
+- Git-tracked defaults: `.env`
+- Git-tracked environment overlays: `.env.dev` / `.env.prod`
+- Local private overrides (not tracked): `.env.local`
+- Local private environment overrides (not tracked): `.env.dev.local` / `.env.prod.local`
+
+`apps/web/.env` is the single git-tracked base config. `.env.dev` / `.env.prod` are small tracked overlays for environment differences. Keep secrets like `AI_GATEWAY_API_KEY` in local-only files (for example `.env.local` / `.env.dev.local`) and never commit them.
 
 ```bash
 bun install
-cp apps/web/.env.example apps/web/.env
-# Edit apps/web/.env and set AI_GATEWAY_API_KEY=...
+cp apps/web/.env.local.example apps/web/.env.local
+# Edit tracked apps/web/.env.dev only when you need dev-specific non-secret overrides.
+# Edit apps/web/.env.local and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 
-Or from **`apps/web`**: `cp .env.example .env` then `bun run dev:pglite`.
+Or from **`apps/web`**: `cp .env.local.example .env.local` then `bun run dev:pglite`.
+
+Env loading is automatic at startup (difference override mode):
+- Base defaults: always load `.env` when present
+- Environment override: load `.env.dev` (development) or `.env.prod` (production)
+- Local private override: load `.env.local` when present
+- Local private environment override: load `.env.dev.local` or `.env.prod.local` when present
+- Later files override earlier files with the same key
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 
-For production, generate your own secrets and keys; do not reuse the example crypto values.
+For production, keep only non-secret differences in `apps/web/.env.prod`, and put production secrets in deployment env vars or `apps/web/.env.prod.local`.
 
 ## Getting Started
 

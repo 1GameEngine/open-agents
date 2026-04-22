@@ -31,8 +31,25 @@ bun install
 
 ### 3. 配置环境变量
 
-进入 `apps/web` 目录，确认 `.env` 文件已存在（默认已随代码库提供测试配置）。
-如果需要自定义，可以参考 `.env.example`。
+进入 `apps/web` 目录，环境文件按“一个基线 + 少量差量”维护：
+
+- 基线默认：`apps/web/.env`（已随仓库提供，可直接使用）
+- 开发差量：`apps/web/.env.dev`（已随仓库提供，按需直接编辑）
+- 生产差量：`apps/web/.env.prod`（已随仓库提供，按需直接编辑）
+
+如需本地私密变量（不进 git，如 `AI_GATEWAY_API_KEY`），额外创建本地覆盖文件：
+
+- 通用私密：`cp .env.local.example .env.local`
+- 开发私密：`cp .env.dev.local.example .env.dev.local`
+- 生产私密：`cp .env.prod.local.example .env.prod.local`
+
+启动时会按以下顺序自动加载（后者覆盖前者同名变量）：
+- `.env`
+- `.env.dev` / `.env.prod`（按 `NODE_ENV`）
+- `.env.local`
+- `.env.dev.local` / `.env.prod.local`（按 `NODE_ENV`）
+
+建议把公共默认值放 `.env`，环境差异项放 `.env.dev` / `.env.prod`，所有密钥只放在 `*.local` 文件或部署平台环境变量中。
 
 核心环境变量说明：
 - `DATABASE_URL` / `WORKFLOW_POSTGRES_URL`: 数据库连接字符串（默认连接本地 PGlite 端口 `5432`）。
@@ -107,7 +124,7 @@ bun run bootstrap
 ## 常见问题
 
 **Q: `dev:pglite` 启动失败，提示端口被占用？**
-A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env` 中的数据库 URL 端口。
+A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env` / `.env.dev`（或你使用的本地覆盖 env 文件）中的数据库 URL 端口。
 
 **Q: 如何管理 API Key？**
 A: 系统提供了 RESTful API 端点来管理 API Key：

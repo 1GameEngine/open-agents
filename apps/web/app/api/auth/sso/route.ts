@@ -59,6 +59,11 @@ export async function GET(req: NextRequest) {
     // 1game-server 全局拦截器会把所有响应包装为 { data: ..., success: true }
     const verifyBody = (await verifyRes.json()) as MbbsApiResponse<MbbsUserInfo>;
     userInfo = verifyBody.data;
+    if (!userInfo?.id) {
+      return NextResponse.redirect(
+        new URL("/error?msg=invalid_ticket", req.url),
+      );
+    }
   } catch {
     return NextResponse.redirect(
       new URL("/error?msg=sso_verify_failed", req.url),

@@ -20,6 +20,7 @@ export default async function Home() {
   // 将自身 SSO 路由地址作为回调传给 1game-server 中转页，
   // 中转页无需感知 agents 域名，只需在此地址后追加 ticket 参数即可。
   const ssoCallbackUrl = `${AGENTS_SSO_BASE_URL}?redirect=/sessions`;
-  const mbbsJumpUrl = `${BBS_BASE_URL}/sso/jump?sso_callback_url=${encodeURIComponent(ssoCallbackUrl)}`;
+  // 1game-server 使用 hash 路由，中转页路径为 /#/sso/jump
+  const mbbsJumpUrl = `${BBS_BASE_URL}/#/sso/jump?sso_callback_url=${encodeURIComponent(ssoCallbackUrl)}`;
   redirect(mbbsJumpUrl);
 }

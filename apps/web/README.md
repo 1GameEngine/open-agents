@@ -10,22 +10,31 @@ The following environment variables are required:
 
 ## Local dev (self-hosted + PGlite)
 
-`apps/web/.env.example` provides shared defaults, while `apps/web/.env.dev.example` only contains dev-specific overrides. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in your env files from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
+This project uses four-layer env loading:
+- Git-tracked defaults: `.env`
+- Git-tracked environment overlays: `.env.dev` / `.env.prod`
+- Local private overrides (not tracked): `.env.local`
+- Local private environment overrides (not tracked): `.env.dev.local` / `.env.prod.local`
+
+`apps/web/.env.example`, `apps/web/.env.dev.example`, and `apps/web/.env.prod.example` are starter templates for tracked files. Keep secrets like `AI_GATEWAY_API_KEY` in local-only files (for example `.env.local` / `.env.dev.local`) and never commit them.
 
 ```bash
 bun install
 cp apps/web/.env.example apps/web/.env
 cp apps/web/.env.dev.example apps/web/.env.dev
-# Edit apps/web/.env and/or apps/web/.env.dev and set AI_GATEWAY_API_KEY=...
+cp apps/web/.env.local.example apps/web/.env.local
+# Edit apps/web/.env.local and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 
-Or from **`apps/web`**: `cp .env.dev.example .env.dev` then `bun run dev:pglite`.
+Or from **`apps/web`**: `cp .env.dev.example .env.dev && cp .env.local.example .env.local` then `bun run dev:pglite`.
 
 Env loading is automatic at startup (difference override mode):
 - Base defaults: always load `.env` when present
-- Dev override: `NODE_ENV=development` (default for `bun run dev` / `bun run dev:pglite`) additionally loads `.env.dev` and overrides same-name keys
-- Prod override: `NODE_ENV=production` (for `bun run build` / `bun run start`) additionally loads `.env.prod` and overrides same-name keys
+- Environment override: load `.env.dev` (development) or `.env.prod` (production)
+- Local private override: load `.env.local` when present
+- Local private environment override: load `.env.dev.local` or `.env.prod.local` when present
+- Later files override earlier files with the same key
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 

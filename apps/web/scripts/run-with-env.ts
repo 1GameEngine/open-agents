@@ -8,6 +8,7 @@ const ENV_BY_NODE_ENV = {
 } as const;
 
 const DEFAULT_ENV_FILE = ".env";
+const LOCAL_ENV_FILE = ".env.local";
 
 function getOverlayEnvFile() {
   const nodeEnv = process.env.NODE_ENV;
@@ -30,12 +31,23 @@ function getEnvFilesToLoad() {
     filesToLoad.push(overlayEnvFile);
   }
 
+  const localEnvPath = resolve(process.cwd(), LOCAL_ENV_FILE);
+  if (existsSync(localEnvPath)) {
+    filesToLoad.push(LOCAL_ENV_FILE);
+  }
+
+  const localOverlayEnvFile = `${overlayEnvFile}.local`;
+  const localOverlayEnvPath = resolve(process.cwd(), localOverlayEnvFile);
+  if (existsSync(localOverlayEnvPath)) {
+    filesToLoad.push(localOverlayEnvFile);
+  }
+
   if (filesToLoad.length > 0) {
     return filesToLoad;
   }
 
   throw new Error(
-    `No environment file found. Expected \`${DEFAULT_ENV_FILE}\` and/or \`${overlayEnvFile}\` in ${process.cwd()}.`,
+    `No environment file found. Expected \`${DEFAULT_ENV_FILE}\`, \`${overlayEnvFile}\`, \`${LOCAL_ENV_FILE}\`, and/or \`${overlayEnvFile}.local\` in ${process.cwd()}.`,
   );
 }
 

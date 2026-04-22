@@ -31,17 +31,25 @@ bun install
 
 ### 3. 配置环境变量
 
-进入 `apps/web` 目录，按环境创建配置文件：
+进入 `apps/web` 目录，创建基础配置和环境差量配置（这些文件可进 git，默认可直接运行）：
 
-- 开发环境：`cp .env.dev.example .env.dev`
-- 生产环境：`cp .env.prod.example .env.prod`
+- 基础配置：`cp .env.example .env`
+- 开发差量：`cp .env.dev.example .env.dev`
+- 生产差量：`cp .env.prod.example .env.prod`
 
-启动时会按以下顺序自动加载：
-- 先加载默认 `.env`
-- 再根据 `NODE_ENV` 额外加载并覆盖：`development` -> `.env.dev`，`production` -> `.env.prod`
-- 如果对应差量文件不存在，则仅使用 `.env`
+如需本地私密变量（不进 git，如 `AI_GATEWAY_API_KEY`），额外创建本地覆盖文件：
 
-建议把公共配置放 `.env`，环境差异项放 `.env.dev` / `.env.prod`。
+- 通用私密：`cp .env.local.example .env.local`
+- 开发私密：`cp .env.dev.local.example .env.dev.local`
+- 生产私密：`cp .env.prod.local.example .env.prod.local`
+
+启动时会按以下顺序自动加载（后者覆盖前者同名变量）：
+- `.env`
+- `.env.dev` / `.env.prod`（按 `NODE_ENV`）
+- `.env.local`
+- `.env.dev.local` / `.env.prod.local`（按 `NODE_ENV`）
+
+建议把公共默认值放 `.env`，环境差异项放 `.env.dev` / `.env.prod`，所有密钥只放在 `*.local` 文件或部署平台环境变量中。
 
 核心环境变量说明：
 - `DATABASE_URL` / `WORKFLOW_POSTGRES_URL`: 数据库连接字符串（默认连接本地 PGlite 端口 `5432`）。
@@ -116,7 +124,7 @@ bun run bootstrap
 ## 常见问题
 
 **Q: `dev:pglite` 启动失败，提示端口被占用？**
-A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env.dev`（或你使用的 env 文件）中的数据库 URL 端口。
+A: 请确保本地没有其他 PostgreSQL 实例或服务正在占用 `5432` 端口。如果需要更改端口，请同步修改 `package.json` 中的 `dev:pglite` 脚本以及 `.env` / `.env.dev`（或你使用的本地覆盖 env 文件）中的数据库 URL 端口。
 
 **Q: 如何管理 API Key？**
 A: 系统提供了 RESTful API 端点来管理 API Key：

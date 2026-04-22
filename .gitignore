@@ -21,6 +21,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.test.local
 .env.production.local
 .env.local
+!apps/web/.env
+!apps/web/.env.dev
+!apps/web/.env.prod
 
 # caches
 .eslintcache

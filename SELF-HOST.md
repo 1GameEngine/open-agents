@@ -36,12 +36,12 @@ bun install
 - 开发环境：`cp .env.dev.example .env.dev`
 - 生产环境：`cp .env.prod.example .env.prod`
 
-启动时会自动按 `NODE_ENV` 读取：
-- `development` -> `.env.dev`
-- `production` -> `.env.prod`
-- 如果对应文件不存在，回退到 `.env`
+启动时会按以下顺序自动加载：
+- 先加载默认 `.env`
+- 再根据 `NODE_ENV` 额外加载并覆盖：`development` -> `.env.dev`，`production` -> `.env.prod`
+- 如果对应差量文件不存在，则仅使用 `.env`
 
-如果你沿用旧流程，也可以继续使用 `.env`（参考 `.env.example`）。
+建议把公共配置放 `.env`，环境差异项放 `.env.dev` / `.env.prod`。
 
 核心环境变量说明：
 - `DATABASE_URL` / `WORKFLOW_POSTGRES_URL`: 数据库连接字符串（默认连接本地 PGlite 端口 `5432`）。

@@ -9,25 +9,33 @@ const ENV_BY_NODE_ENV = {
 
 const DEFAULT_ENV_FILE = ".env";
 
-function getSelectedEnvFile() {
+function getOverlayEnvFile() {
   const nodeEnv = process.env.NODE_ENV;
-  const preferredEnvFile =
-    nodeEnv === "production"
-      ? ENV_BY_NODE_ENV.production
-      : ENV_BY_NODE_ENV.development;
-  const preferredPath = resolve(process.cwd(), preferredEnvFile);
+  return nodeEnv === "production"
+    ? ENV_BY_NODE_ENV.production
+    : ENV_BY_NODE_ENV.development;
+}
 
-  if (existsSync(preferredPath)) {
-    return preferredEnvFile;
+function getEnvFilesToLoad() {
+  const overlayEnvFile = getOverlayEnvFile();
+  const filesToLoad: string[] = [];
+
+  const defaultEnvPath = resolve(process.cwd(), DEFAULT_ENV_FILE);
+  if (existsSync(defaultEnvPath)) {
+    filesToLoad.push(DEFAULT_ENV_FILE);
   }
 
-  const fallbackPath = resolve(process.cwd(), DEFAULT_ENV_FILE);
-  if (existsSync(fallbackPath)) {
-    return DEFAULT_ENV_FILE;
+  const overlayEnvPath = resolve(process.cwd(), overlayEnvFile);
+  if (existsSync(overlayEnvPath)) {
+    filesToLoad.push(overlayEnvFile);
+  }
+
+  if (filesToLoad.length > 0) {
+    return filesToLoad;
   }
 
   throw new Error(
-    `No environment file found. Expected \`${preferredEnvFile}\` or \`${DEFAULT_ENV_FILE}\` in ${process.cwd()}.`,
+    `No environment file found. Expected \`${DEFAULT_ENV_FILE}\` and/or \`${overlayEnvFile}\` in ${process.cwd()}.`,
   );
 }
 
@@ -92,6 +100,14 @@ function loadEnvFromFile(envFile: string) {
   return parseEnvFileContent(content);
 }
 
+function loadMergedEnvFromFiles(envFiles: string[]) {
+  const mergedEnv: Record<string, string> = {};
+  for (const envFile of envFiles) {
+    Object.assign(mergedEnv, loadEnvFromFile(envFile));
+  }
+  return mergedEnv;
+}
+
 async function run() {
   const commandArgs = process.argv.slice(2);
   if (commandArgs.length === 0) {
@@ -100,17 +116,19 @@ async function run() {
     );
   }
 
-  const envFile = getSelectedEnvFile();
-  const loadedEnv = loadEnvFromFile(envFile);
-  process.stdout.write(`[run-with-env] loaded ${envFile}\n`);
+  const envFiles = getEnvFilesToLoad();
+  const loadedEnv = loadMergedEnvFromFiles(envFiles);
+  process.stdout.write(`[run-with-env] loaded ${envFiles.join(" -> ")}\n`);
 
   const [command, ...args] = commandArgs;
+  const activeEnvFile = envFiles[envFiles.length - 1];
   const child = spawn(command, args, {
     cwd: process.cwd(),
     env: {
       ...process.env,
       ...loadedEnv,
-      OPEN_HARNESS_ENV_FILE: envFile,
+      OPEN_HARNESS_ENV_FILE: activeEnvFile,
+      OPEN_HARNESS_ENV_FILES: envFiles.join(","),
     },
     stdio: "inherit",
   });

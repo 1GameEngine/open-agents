@@ -161,14 +161,15 @@ Recommended path: deploy this repo at the repo root on Vercel, then layer on aut
    bun install
    ```
 
-2. Create env files for development / production:
+2. Create env files for base + development / production:
 
    ```bash
+   cp apps/web/.env.example apps/web/.env
    cp apps/web/.env.dev.example apps/web/.env.dev
    cp apps/web/.env.prod.example apps/web/.env.prod
    ```
 
-3. Fill in the required values in `apps/web/.env.dev` (and `apps/web/.env.prod` for production-like runs).
+3. Fill shared defaults in `apps/web/.env`, then override environment-specific values in `apps/web/.env.dev` / `apps/web/.env.prod`.
 4. Start the app:
 
    ```bash

@@ -10,22 +10,22 @@ The following environment variables are required:
 
 ## Local dev (self-hosted + PGlite)
 
-`apps/web/.env.dev.example` has defaults for **PGlite on `127.0.0.1:5433`**, **local-fs** sandboxes under `/tmp/open-agents-sandboxes`, and dev crypto / bootstrap keys. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in `apps/web/.env.dev` from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
+`apps/web/.env.example` provides shared defaults, while `apps/web/.env.dev.example` only contains dev-specific overrides. **`AI_GATEWAY_API_KEY` is empty in the example** — after copying, set it in your env files from [Vercel AI Gateway](https://vercel.com/dashboard/ai-gateway).
 
 ```bash
 bun install
 cp apps/web/.env.example apps/web/.env
 cp apps/web/.env.dev.example apps/web/.env.dev
-# Edit apps/web/.env.dev and set AI_GATEWAY_API_KEY=...
+# Edit apps/web/.env and/or apps/web/.env.dev and set AI_GATEWAY_API_KEY=...
 bun run web:dev:pglite
 ```
 
 Or from **`apps/web`**: `cp .env.dev.example .env.dev` then `bun run dev:pglite`.
 
-Env file selection is automatic at startup:
-- `NODE_ENV=development` (default for `bun run dev` / `bun run dev:pglite`) -> `.env.dev`
-- `NODE_ENV=production` (for `bun run build`) -> `.env.prod`
-- fallback when specific file is missing -> `.env`
+Env loading is automatic at startup (difference override mode):
+- Base defaults: always load `.env` when present
+- Dev override: `NODE_ENV=development` (default for `bun run dev` / `bun run dev:pglite`) additionally loads `.env.dev` and overrides same-name keys
+- Prod override: `NODE_ENV=production` (for `bun run build` / `bun run start`) additionally loads `.env.prod` and overrides same-name keys
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 

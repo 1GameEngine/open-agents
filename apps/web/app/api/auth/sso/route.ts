@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
   // 2. 在 open-agents 中同步用户，provider 标记为 "1game"
   const userId = await upsertUser({
     provider: "1game",
-    externalId: `mbbs:${userInfo.id}`,
+    externalId: `1game:${userInfo.id}`,
     accessToken: "",
     username: userInfo.username,
     name: userInfo.nickname,

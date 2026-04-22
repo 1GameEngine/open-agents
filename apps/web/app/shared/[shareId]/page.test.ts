@@ -268,7 +268,7 @@ describe("/shared/[shareId] page", () => {
               type: "tool-write",
               state: "output-available",
               input: {
-                filePath: "apps/web/.env.example",
+                filePath: "apps/web/.env",
                 content: "FOO=bar\nBAR=baz",
               },
               output: { success: true },
@@ -322,7 +322,7 @@ describe("/shared/[shareId] page", () => {
       endLine: 2,
     });
     expect(parts?.[1]?.input).toEqual({
-      filePath: "apps/web/.env.example",
+      filePath: "apps/web/.env",
       content:
         "[content redacted from shared page]\n[content redacted from shared page]",
     });

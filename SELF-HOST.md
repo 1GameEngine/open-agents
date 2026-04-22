@@ -35,7 +35,7 @@ bun install
 
 - 基线默认：`apps/web/.env`（已随仓库提供，可直接使用）
 - 开发差量：`apps/web/.env.dev`（已随仓库提供，按需直接编辑）
-- 生产差量模板：`cp .env.prod.example .env.prod`
+- 生产差量：`apps/web/.env.prod`（已随仓库提供，按需直接编辑）
 
 如需本地私密变量（不进 git，如 `AI_GATEWAY_API_KEY`），额外创建本地覆盖文件：
 

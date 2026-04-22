@@ -7,7 +7,7 @@
  *
  * Self-hosted mode uses @workflow/world-postgres.
  * The world is configured via the WORKFLOW_TARGET_WORLD and
- * WORKFLOW_POSTGRES_URL environment variables (see .env.example).
+ * WORKFLOW_POSTGRES_URL environment variables (see .env).
  *
  * In development, you can use PGlite as a zero-dependency PostgreSQL substitute:
  *   WORKFLOW_POSTGRES_URL=postgres://postgres:postgres@localhost:5432/postgres

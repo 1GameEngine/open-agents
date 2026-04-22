@@ -534,7 +534,6 @@ const filenameMap: Record<string, (props: IconProps) => React.JSX.Element> = {
   ".env.development": EnvIcon,
   ".env.production": EnvIcon,
   ".env.test": EnvIcon,
-  ".env.example": EnvIcon,
   "cargo.toml": TomlIcon,
   "cargo.lock": LockIcon,
   "package-lock.json": LockIcon,

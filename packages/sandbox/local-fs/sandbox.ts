@@ -16,7 +16,7 @@ import type { Dirent, ExecResult, Sandbox, SandboxStats } from "../interface";
 
 /** Root directory under which all session sandboxes are created. */
 const SANDBOX_ROOT_DIR =
-  process.env.SANDBOX_ROOT_DIR ?? "/home/open-agents/sandboxes";
+  process.env.SANDBOX_ROOT_DIR ?? "/workspace/data/sandboxes";
 
 /**
  * Ensure the sandbox root directory exists.

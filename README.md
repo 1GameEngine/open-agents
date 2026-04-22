@@ -161,12 +161,10 @@ Recommended path: deploy this repo at the repo root on Vercel, then layer on aut
    bun install
    ```
 
-2. Create env files for base + development / production:
+2. Env layering is tracked in git out of the box:
 
    ```bash
-   cp apps/web/.env.example apps/web/.env
-   cp apps/web/.env.dev.example apps/web/.env.dev
-   cp apps/web/.env.prod.example apps/web/.env.prod
+   # already tracked: apps/web/.env, apps/web/.env.dev, apps/web/.env.prod
    ```
 
 3. (Optional but recommended) add local secret overrides that stay out of git:

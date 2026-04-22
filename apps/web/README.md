@@ -16,11 +16,10 @@ This project uses four-layer env loading:
 - Local private overrides (not tracked): `.env.local`
 - Local private environment overrides (not tracked): `.env.dev.local` / `.env.prod.local`
 
-`apps/web/.env.example`, `apps/web/.env.dev.example`, and `apps/web/.env.prod.example` are starter templates for tracked files. Keep secrets like `AI_GATEWAY_API_KEY` in local-only files (for example `.env.local` / `.env.dev.local`) and never commit them.
+`apps/web/.env` is the single git-tracked base config. `.env.dev` / `.env.prod` are small tracked overlays for environment differences. Keep secrets like `AI_GATEWAY_API_KEY` in local-only files (for example `.env.local` / `.env.dev.local`) and never commit them.
 
 ```bash
 bun install
-cp apps/web/.env.example apps/web/.env
 cp apps/web/.env.dev.example apps/web/.env.dev
 cp apps/web/.env.local.example apps/web/.env.local
 # Edit apps/web/.env.local and set AI_GATEWAY_API_KEY=...
@@ -38,7 +37,7 @@ Env loading is automatic at startup (difference override mode):
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 
-For production, copy `apps/web/.env.prod.example` to `apps/web/.env.prod`, generate your own secrets and keys, and do not reuse dev values.
+For production, keep only non-secret differences in `apps/web/.env.prod`, and put production secrets in deployment env vars or `apps/web/.env.prod.local`.
 
 ## Getting Started
 

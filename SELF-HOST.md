@@ -31,11 +31,11 @@ bun install
 
 ### 3. 配置环境变量
 
-进入 `apps/web` 目录，创建基础配置和环境差量配置（这些文件可进 git，默认可直接运行）：
+进入 `apps/web` 目录，环境文件按“一个基线 + 少量差量”维护：
 
-- 基础配置：`cp .env.example .env`
-- 开发差量：`cp .env.dev.example .env.dev`
-- 生产差量：`cp .env.prod.example .env.prod`
+- 基线默认：`apps/web/.env`（已随仓库提供，可直接使用）
+- 开发差量模板：`cp .env.dev.example .env.dev`
+- 生产差量模板：`cp .env.prod.example .env.prod`
 
 如需本地私密变量（不进 git，如 `AI_GATEWAY_API_KEY`），额外创建本地覆盖文件：
 

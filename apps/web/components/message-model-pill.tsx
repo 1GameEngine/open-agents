@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePointsBalance } from "@/hooks/use-points-balance";
 
 interface MessageModelPillProps {
   metadata: WebAgentMessageMetadata;
@@ -50,6 +51,14 @@ function formatCostUsd(amount: number): string {
 }
 
 /**
+ * Format a points balance for compact display.
+ * e.g. 10000 → "10,000 pts"  |  500 → "500 pts"
+ */
+function formatPoints(pts: number): string {
+  return pts.toLocaleString("en-US") + " pts";
+}
+
+/**
  * Compact pill shown on hover below an assistant message to indicate which
  * model produced the response.
  *
@@ -57,6 +66,8 @@ function formatCostUsd(amount: number): string {
  * - Variant turn: shows the variant label; tooltip reveals the resolved model.
  * - When the gateway reports a cost, the cumulative USD cost is rendered
  *   next to the model name.
+ * - When points balance is available, it is shown after the cost as a
+ *   remaining-quota indicator (e.g. "· 9,750 pts left").
  */
 export function MessageModelPill({
   metadata,
@@ -67,6 +78,8 @@ export function MessageModelPill({
     modelId: resolvedModelId,
     totalMessageCost,
   } = metadata;
+
+  const { balance, dailyMax } = usePointsBalance();
 
   if (!selectedModelId && !resolvedModelId) {
     return null;
@@ -101,6 +114,17 @@ export function MessageModelPill({
     Number.isFinite(totalMessageCost) &&
     totalMessageCost >= 0;
 
+  const hasBalance = typeof balance === "number" && typeof dailyMax === "number";
+
+  // Colour the balance based on remaining ratio
+  const balanceRatio = hasBalance ? balance / dailyMax : 1;
+  const balanceColor =
+    balanceRatio <= 0.1
+      ? "text-red-400/70"
+      : balanceRatio <= 0.3
+        ? "text-yellow-400/70"
+        : "text-muted-foreground/50";
+
   // For variants, tooltip shows the underlying model that actually ran.
   // When cost is available we also surface it in the tooltip so the exact
   // value is visible even if the compact display rounds.
@@ -113,9 +137,14 @@ export function MessageModelPill({
       `Cost: ${(totalMessageCost as number).toFixed(6)} (gateway)`,
     );
   }
+  if (hasBalance) {
+    tooltipParts.push(
+      `Remaining today: ${formatPoints(balance)} / ${formatPoints(dailyMax)}`,
+    );
+  }
 
   const pill = (
-    <span className="inline-flex max-w-[320px] items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-tight text-muted-foreground/50 transition-colors hover:text-muted-foreground/80">
+    <span className="inline-flex max-w-[420px] items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-tight text-muted-foreground/50 transition-colors hover:text-muted-foreground/80">
       <ProviderIcon provider={provider} className="size-3 shrink-0" />
       <span className="truncate">{shortLabel}</span>
       {hasCost && (
@@ -125,6 +154,16 @@ export function MessageModelPill({
           </span>
           <span className="tabular-nums">
             {formatCostUsd(totalMessageCost as number)}
+          </span>
+        </>
+      )}
+      {hasBalance && (
+        <>
+          <span aria-hidden className="text-muted-foreground/30">
+            ·
+          </span>
+          <span className={`tabular-nums ${balanceColor}`}>
+            {formatPoints(balance)} left
           </span>
         </>
       )}

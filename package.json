@@ -16,6 +16,7 @@
   },
   "scripts": {
     "web": "cd apps/web/ && bun run dev",
+    "mock:sso": "bun run scripts/mock-sso-server.ts",
     "web:dev:pglite": "cd apps/web && bun run dev:pglite",
     "dev": "turbo dev",
     "build": "turbo build",

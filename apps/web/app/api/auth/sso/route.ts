@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   try {
     // MBBS_API_BASE_URL 已含 /main/ 后缀（如 https://api.1game.design/main/）
     const verifyRes = await fetch(
-      `${MBBS_API_BASE_URL.replace(/\/$/, '')}/sso/verify?ticket=${encodeURIComponent(ticket)}`,
+      `${MBBS_API_BASE_URL.replace(/\/$/, "")}/sso/verify?ticket=${encodeURIComponent(ticket)}`,
     );
     if (!verifyRes.ok) {
       return NextResponse.redirect(
@@ -57,7 +57,8 @@ export async function GET(req: NextRequest) {
       );
     }
     // 1game-server 全局拦截器会把所有响应包装为 { data: ..., success: true }
-    const verifyBody = (await verifyRes.json()) as MbbsApiResponse<MbbsUserInfo>;
+    const verifyBody =
+      (await verifyRes.json()) as MbbsApiResponse<MbbsUserInfo>;
     userInfo = verifyBody.data;
     if (!userInfo?.id) {
       return NextResponse.redirect(

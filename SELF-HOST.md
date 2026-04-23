@@ -55,6 +55,7 @@ bun install
 - `DATABASE_URL` / `WORKFLOW_POSTGRES_URL`: 数据库连接字符串（默认连接本地 PGlite 端口 `5432`）。
 - `WORKFLOW_TARGET_WORLD`: 必须设置为 `@workflow/world-postgres`。
 - `AI_GATEWAY_API_KEY`: 访问 Vercel AI Gateway 的凭证。
+- **1game SSO（可选）**：若需走浏览器 SSO 流程，`apps/web` 需配置 `MBBS_API_BASE_URL`（服务端校验票据）、`NEXT_PUBLIC_BBS_BASE_URL`、`NEXT_PUBLIC_AGENTS_SSO_BASE_URL` 等；详见 `apps/web/.env.local.example`。无真实 1game-server 时可用下一节的 Mock 服务。
 
 ### 4. 启动开发服务
 
@@ -68,7 +69,29 @@ bun run dev:pglite
 
 *(该命令会启动 PGlite Server 监听 5432 端口，并在后台运行 `next dev`)*
 
-### 5. 初始化管理员与 API Key
+### 5. Mock SSO（本地固定用户调试）
+
+不连接真实 1game-server 时，可在**仓库根目录**另开终端启动票据校验的 Mock 服务（模拟 `GET /main/sso/verify`）：
+
+```bash
+bun run mock:sso
+```
+
+默认监听 `http://127.0.0.1:8840`，返回固定用户（如 `id` 为 `dev-local-1`）。在 `apps/web/.env.local` 中设置：
+
+```env
+MBBS_API_BASE_URL=http://127.0.0.1:8840/main
+```
+
+可通过环境变量覆盖默认用户与端口，例如 `MOCK_SSO_USER_ID`、`MOCK_SSO_USERNAME`、`MOCK_SSO_PORT` 等，完整列表见 `scripts/mock-sso-server.ts` 文件顶部注释。
+
+启动 Web 后，可直接在浏览器访问（`ticket` 可为任意非空字符串）：
+
+`http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions`
+
+根路径 `/` 仍会按 `NEXT_PUBLIC_BBS_BASE_URL` 跳转 BBS 中转页；调试 SSO 时优先使用上述直连地址更省事。
+
+### 6. 初始化管理员与 API Key
 
 首次启动系统后，数据库是空的。你需要运行初始化脚本来创建第一个管理员用户和对应的 API Key：
 
@@ -78,7 +101,9 @@ bun run bootstrap
 ```
 
 脚本执行成功后，会在控制台输出生成的 API Key。请妥善保存此 Key，后续调用 API 时需在 Header 中携带：
-`Authorization: Bearer <YOUR_API_KEY>`
+`Authorization: Bearer <YOUR_API_KEY>`。
+
+（若你已通过 **Mock SSO** 或真实 SSO 在浏览器登录，也会得到写入 Cookie 的 API Key，与 Bootstrap 生成的 Key 用途类似，二者按场景择一即可。）
 
 ---
 

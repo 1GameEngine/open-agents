@@ -238,6 +238,7 @@ GITHUB_WEBHOOK_SECRET=...
 
 ```bash
 bun run web
+bun run mock:sso   # local mock 1game /sso/verify for SSO debugging (see SELF-HOST.md)
 bun run check
 bun run typecheck
 bun run ci

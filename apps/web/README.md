@@ -37,6 +37,16 @@ Env loading is automatic at startup (difference override mode):
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 
+### 1game SSO (local mock)
+
+For local debugging without a real 1game-server, run from the **repo root**:
+
+```bash
+bun run mock:sso
+```
+
+Then set `MBBS_API_BASE_URL=http://127.0.0.1:8840/main` in `apps/web/.env.local` (see `scripts/mock-sso-server.ts` for `MOCK_SSO_USER_ID` and other overrides). Open `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions` with any non-empty `ticket`.
+
 For production, keep only non-secret differences in `apps/web/.env.prod`, and put production secrets in deployment env vars or `apps/web/.env.prod.local`.
 
 ## Getting Started

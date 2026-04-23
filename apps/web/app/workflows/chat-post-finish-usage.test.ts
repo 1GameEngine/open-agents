@@ -29,6 +29,7 @@ function makeAssistantMessage(
 const spies = {
   recordUsage: mock(() => Promise.resolve()),
   recordWorkflowRun: mock(() => Promise.resolve()),
+  deductPoints: mock(() => Promise.resolve()),
   collectTaskToolUsageEvents: mock(
     (_message?: unknown) =>
       [] as Array<{
@@ -72,6 +73,13 @@ mock.module("@/lib/db/workflow-runs", () => ({
 mock.module("@open-harness/agent", () => ({
   collectTaskToolUsageEvents: spies.collectTaskToolUsageEvents,
   sumLanguageModelUsage: spies.sumLanguageModelUsage,
+}));
+
+mock.module("@/lib/points/service", () => ({
+  deductPoints: spies.deductPoints,
+  checkAndResetDailyPoints: mock(() => Promise.resolve(10_000)),
+  usdToPoints: (cost: number) =>
+    cost <= 0 ? 0 : Math.max(1, Math.ceil(cost * 1000)),
 }));
 
 const { recordWorkflowUsage } = await import("./chat-post-finish");
@@ -355,5 +363,159 @@ describe("recordWorkflowUsage", () => {
     });
 
     await recordWorkflowUsage("user-1", "gpt-4", usage, makeAssistantMessage());
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────────
+// recordWorkflowUsage — points deduction behaviour
+// ────────────────────────────────────────────────────────────────────────────────
+const workflowRunBase = {
+  workflowRunId: "wrun-pts-1",
+  chatId: "chat-pts-1",
+  sessionId: "session-pts-1",
+  status: "completed" as const,
+  startedAt: "2026-01-01T00:00:00.000Z",
+  finishedAt: "2026-01-01T00:00:05.000Z",
+  totalDurationMs: 5000,
+  stepTimings: [],
+};
+
+describe("recordWorkflowUsage — points deduction", () => {
+  test("calls deductPoints with correct userId, sessionId, chatId, modelId", async () => {
+    await recordWorkflowUsage(
+      "user-pts",
+      "openai/gpt-4o",
+      undefined,
+      makeAssistantMessage(),
+      undefined,
+      workflowRunBase,
+    );
+    expect(spies.deductPoints).toHaveBeenCalledTimes(1);
+    const call = (spies.deductPoints.mock.calls as unknown[][])[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(call.userId).toBe("user-pts");
+    expect(call.sessionId).toBe("session-pts-1");
+    expect(call.chatId).toBe("chat-pts-1");
+    expect(call.modelId).toBe("openai/gpt-4o");
+  });
+
+  test("passes totalMessageCost from message metadata to deductPoints", async () => {
+    const msg = makeAssistantMessage({
+      metadata: { totalMessageCost: 0.0123 } as never,
+    });
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      undefined,
+      msg,
+      undefined,
+      workflowRunBase,
+    );
+    const call = (spies.deductPoints.mock.calls as unknown[][])[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(call.usdCost).toBe(0.0123);
+  });
+
+  test("passes undefined usdCost when metadata has no totalMessageCost", async () => {
+    const msg = makeAssistantMessage(); // no metadata
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      undefined,
+      msg,
+      undefined,
+      workflowRunBase,
+    );
+    const call = (spies.deductPoints.mock.calls as unknown[][])[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(call.usdCost).toBeUndefined();
+  });
+
+  test("passes undefined usdCost when totalMessageCost is not a number", async () => {
+    const msg = makeAssistantMessage({
+      metadata: { totalMessageCost: "not-a-number" } as never,
+    });
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      undefined,
+      msg,
+      undefined,
+      workflowRunBase,
+    );
+    const call = (spies.deductPoints.mock.calls as unknown[][])[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(call.usdCost).toBeUndefined();
+  });
+
+  test("does not call deductPoints when workflowRun is not provided", async () => {
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      undefined,
+      makeAssistantMessage(),
+      // no workflowRun argument
+    );
+    expect(spies.deductPoints).not.toHaveBeenCalled();
+  });
+
+  test("does not throw when deductPoints rejects", async () => {
+    spies.deductPoints.mockImplementationOnce(() =>
+      Promise.reject(new Error("DB write failed")),
+    );
+    await expect(
+      recordWorkflowUsage(
+        "user-1",
+        "openai/gpt-4o",
+        undefined,
+        makeAssistantMessage(),
+        undefined,
+        workflowRunBase,
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  test("still records usage even when deductPoints rejects", async () => {
+    spies.deductPoints.mockImplementationOnce(() =>
+      Promise.reject(new Error("Points DB down")),
+    );
+    const usage = makeUsage({ inputTokens: 10, outputTokens: 5, totalTokens: 15 });
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      usage,
+      makeAssistantMessage(),
+      undefined,
+      workflowRunBase,
+    );
+    expect(spies.recordUsage).toHaveBeenCalledTimes(1);
+  });
+
+  test("deducts points with zero cost when totalMessageCost is 0", async () => {
+    const msg = makeAssistantMessage({
+      metadata: { totalMessageCost: 0 } as never,
+    });
+    await recordWorkflowUsage(
+      "user-1",
+      "openai/gpt-4o",
+      undefined,
+      msg,
+      undefined,
+      workflowRunBase,
+    );
+    const call = (spies.deductPoints.mock.calls as unknown[][])[0][0] as Record<
+      string,
+      unknown
+    >;
+    // usdCost of 0 is a valid number, so it should be passed through
+    expect(call.usdCost).toBe(0);
   });
 });

@@ -21,8 +21,8 @@ export function usePointsBalance() {
   );
 
   return {
-    balance: data?.balance,
-    dailyMax: data?.dailyMax,
+    balance: data?.balance ?? null,
+    dailyMax: data?.dailyMax ?? 10000,
     isLoading,
     error: error ?? null,
     mutate,

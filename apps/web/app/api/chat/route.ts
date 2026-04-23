@@ -27,6 +27,7 @@ import {
   MANAGED_TEMPLATE_TRIAL_MESSAGE_LIMIT,
   MANAGED_TEMPLATE_TRIAL_MESSAGE_LIMIT_ERROR,
 } from "@/lib/managed-template-trial";
+import { checkAndResetDailyPoints } from "@/lib/points/service";
 import { buildActiveLifecycleUpdate } from "@/lib/sandbox/lifecycle";
 import { requireOwnedSessionChat } from "./_lib/chat-context";
 import { resolveChatModelSelection } from "./_lib/model-selection";
@@ -90,6 +91,18 @@ export async function POST(req: Request) {
   const activeSandboxState = sessionRecord.sandboxState;
   if (!activeSandboxState) {
     throw new Error("Sandbox not initialized");
+  }
+
+  // 4. Points quota check — reject if the user has exhausted today's allowance
+  const availablePoints = await checkAndResetDailyPoints(userId);
+  if (availablePoints <= 0) {
+    return Response.json(
+      {
+        error:
+          "Daily points quota exhausted. Your 10,000-point allowance resets at midnight UTC.",
+      },
+      { status: 402 },
+    );
   }
 
   if (isManagedTemplateTrialUser(session, req.url)) {

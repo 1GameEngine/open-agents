@@ -8,6 +8,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uniqueIndex,
@@ -447,3 +448,58 @@ export const apiKeys = pgTable(
 );
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
+
+// Points system — daily quota per user
+export const DAILY_FREE_POINTS = 10_000;
+
+// User daily points balance
+export const userPoints = pgTable("user_points", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // Date of last reset in YYYY-MM-DD format (UTC)
+  lastResetDate: text("last_reset_date").notNull(),
+  // Remaining points for the current day (resets to DAILY_FREE_POINTS each day)
+  dailyPoints: integer("daily_points").notNull().default(DAILY_FREE_POINTS),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type UserPoints = typeof userPoints.$inferSelect;
+export type NewUserPoints = typeof userPoints.$inferInsert;
+
+// Points transaction ledger — one row per AI turn, keyed by sessionId + chatId
+export const pointTransactions = pgTable(
+  "point_transactions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    chatId: text("chat_id")
+      .notNull()
+      .references(() => chats.id, { onDelete: "cascade" }),
+    // 'consume' = AI turn deduction; 'daily_reset' = daily quota replenishment
+    type: text("type", { enum: ["consume", "daily_reset"] }).notNull(),
+    // Negative for consume, positive for daily_reset
+    amount: integer("amount").notNull(),
+    // Model that produced the response (nullable for daily_reset)
+    modelId: text("model_id"),
+    // Raw USD cost reported by the gateway (nullable when cost unavailable)
+    usdCost: real("usd_cost"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("point_transactions_user_id_idx").on(table.userId),
+    index("point_transactions_session_chat_idx").on(
+      table.sessionId,
+      table.chatId,
+    ),
+  ],
+);
+
+export type PointTransaction = typeof pointTransactions.$inferSelect;
+export type NewPointTransaction = typeof pointTransactions.$inferInsert;

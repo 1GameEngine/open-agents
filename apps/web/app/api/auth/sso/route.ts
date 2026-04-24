@@ -86,7 +86,19 @@ export async function GET(req: NextRequest) {
   const { rawKey } = await createApiKey(userId, "1game-sso", expiresAt);
 
   // 4. 写入 Cookie 并重定向至目标页面
-  const response = NextResponse.redirect(new URL(redirectTo, req.url));
+  const redirectUrl = new URL(redirectTo, req.url);
+  const forwardedHost =
+    req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+
+  if (forwardedHost) {
+    redirectUrl.host = forwardedHost;
+  }
+  if (forwardedProto === "http" || forwardedProto === "https") {
+    redirectUrl.protocol = `${forwardedProto}:`;
+  }
+
+  const response = NextResponse.redirect(redirectUrl);
   response.cookies.set(SELF_HOSTED_API_KEY_COOKIE_NAME, rawKey, {
     path: "/",
     maxAge: 86400, // 24 小时

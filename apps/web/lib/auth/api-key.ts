@@ -26,6 +26,13 @@ export type ApiKeyAuthOutcome = ApiKeyAuthResult | ApiKeyAuthFailure;
  *   if (!auth.ok) return auth.response;
  *   const { userId } = auth;
  */
+function unauthorizedResponse(message: string): ApiKeyAuthFailure {
+  return {
+    ok: false,
+    response: Response.json({ error: message }, { status: 401 }),
+  };
+}
+
 export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
   const cookieStore = await cookies();
   const cookieApiKey = cookieStore.get(SELF_HOSTED_API_KEY_COOKIE_NAME)?.value;
@@ -44,47 +51,28 @@ export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
   const headerStore = await headers();
   const authorization = headerStore.get("authorization") ?? "";
 
-  if (!authorization.startsWith("Bearer ")) {
-    return {
-      ok: false,
-      response: Response.json(
-        {
-          error:
-            "Missing Authorization header. /api/models requires a self-hosted API key (Authorization: Bearer oha_...). AI_GATEWAY_API_KEY is only used server-side to fetch models from AI Gateway.",
-        },
-        { status: 401 },
-      ),
-    };
+  let rawKey: string | undefined;
+  if (authorization.startsWith("Bearer ")) {
+    rawKey = authorization.slice("Bearer ".length).trim();
   }
 
-  const rawKey = authorization.slice("Bearer ".length).trim();
+  if (!rawKey) {
+    const cookieStore = await cookies();
+    rawKey = cookieStore.get(SELF_HOSTED_API_KEY_COOKIE_NAME)?.value?.trim();
+  }
 
   if (!rawKey) {
-    return {
-      ok: false,
-      response: Response.json(
-        {
-          error:
-            "Empty Bearer token. Use Authorization: Bearer oha_... (self-hosted API key).",
-        },
-        { status: 401 },
-      ),
-    };
+    return unauthorizedResponse(
+      "Missing API key. Sign in via SSO, set Authorization: Bearer oha_... on API requests, or use local dev NEXT_PUBLIC_SELF_HOSTED_API_KEY (see README). AI_GATEWAY_API_KEY is only used server-side.",
+    );
   }
 
   const result = await validateApiKey(rawKey);
 
   if (!result) {
-    return {
-      ok: false,
-      response: Response.json(
-        {
-          error:
-            "Invalid or expired self-hosted API key. Ensure your oha_ key exists in DB (bootstrap/api-keys) and matches Authorization: Bearer oha_....",
-        },
-        { status: 401 },
-      ),
-    };
+    return unauthorizedResponse(
+      "Invalid or expired self-hosted API key. Ensure your oha_ key exists in DB (bootstrap/api-keys), matches your session cookie, or use Authorization: Bearer oha_....",
+    );
   }
 
   return {

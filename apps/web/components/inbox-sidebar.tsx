@@ -19,6 +19,7 @@ import type { CSSProperties } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BranchPickerDialog } from "@/components/branch-picker-dialog";
 import { getValidRenameTitle } from "@/components/inbox-sidebar-rename";
+import { PointsBalanceLink } from "@/components/points-balance-link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
-  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
   Tooltip,
@@ -502,7 +503,7 @@ const SessionRow = memo(function SessionRow({
     >
       <button
         type="button"
-        className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left outline-none cursor-pointer"
+        className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-left outline-none"
         onClick={() => onSessionClick(session)}
         onFocus={() => onSessionPrefetch(session)}
         aria-busy={isPending}
@@ -595,7 +596,8 @@ const SessionRow = memo(function SessionRow({
 
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-      <PopoverTrigger asChild>{rowButton}</PopoverTrigger>
+      {/* Anchor only (no Trigger): Trigger adds Radix attrs that can block clicks on the row. */}
+      <PopoverAnchor asChild>{rowButton}</PopoverAnchor>
       <PopoverContent
         side="right"
         align="start"
@@ -1163,6 +1165,9 @@ export function InboxSidebar({
 
       {sidebarUser ? (
         <div className="border-t border-border p-3">
+          <div className="mb-2 px-2">
+            <PointsBalanceLink className="flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" />
+          </div>
           <div className="flex items-center gap-2 rounded-lg p-2">
             <Avatar className="h-9 w-9 shrink-0">
               {sidebarUser.avatar ? (

@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Cable,
+  Coins,
   LogOut,
   Menu,
   Settings as SettingsIcon,
@@ -79,6 +80,12 @@ const sidebarItems = [
     label: "Preferences",
     href: "/settings/preferences",
     icon: SettingsIcon,
+  },
+  {
+    id: "points",
+    label: "积分",
+    href: "/settings/points",
+    icon: Coins,
   },
   {
     id: "model-variants",
@@ -227,19 +234,24 @@ function SettingsLayout({
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeItem = sidebarItems.find((item) => item.href === pathname);
+  const isPointsPath = pathname === "/settings/points";
   const fallbackTitle = activeItem?.label ?? "Profile";
-  const fallbackContent =
-    activeItem?.id === "connections" ? (
-      <ConnectionsPageSkeleton />
-    ) : activeItem?.id === "preferences" ? (
-      <PreferencesSectionSkeleton />
-    ) : activeItem?.id === "model-variants" ? (
-      <ModelVariantsSectionSkeleton />
-    ) : activeItem?.id === "leaderboard" ? (
-      <LeaderboardSectionSkeleton />
-    ) : (
-      <ProfilePageSkeleton />
-    );
+  const fallbackContent = isPointsPath ? (
+    <div className="space-y-4">
+      <Skeleton className="h-24 w-full rounded-lg" />
+      <Skeleton className="h-40 w-full rounded-lg" />
+    </div>
+  ) : activeItem?.id === "connections" ? (
+    <ConnectionsPageSkeleton />
+  ) : activeItem?.id === "preferences" ? (
+    <PreferencesSectionSkeleton />
+  ) : activeItem?.id === "model-variants" ? (
+    <ModelVariantsSectionSkeleton />
+  ) : activeItem?.id === "leaderboard" ? (
+    <LeaderboardSectionSkeleton />
+  ) : (
+    <ProfilePageSkeleton />
+  );
 
   return (
     <AuthGuard

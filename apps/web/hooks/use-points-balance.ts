@@ -15,8 +15,8 @@ export function usePointsBalance() {
     POINTS_BALANCE_SWR_KEY,
     fetcher,
     {
-      // Revalidate every 30 s so the display stays reasonably fresh.
-      refreshInterval: 30_000,
+      // Revalidate periodically so header / nav balance stays fresh.
+      refreshInterval: 15_000,
       // Keep showing stale data while revalidating to avoid flicker.
       revalidateOnFocus: false,
     },

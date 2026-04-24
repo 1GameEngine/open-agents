@@ -8,6 +8,7 @@ import { HomeSkeleton } from "@/components/home-skeleton";
 import type { SandboxType } from "@/components/sandbox-selector-compact";
 import { SessionDrawer } from "@/components/session-drawer";
 import { SessionStarter } from "@/components/session-starter";
+import { PointsBalanceLink } from "@/components/points-balance-link";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { useSession } from "@/hooks/use-session";
 import { useSessions } from "@/hooks/use-sessions";
@@ -100,6 +101,7 @@ export function HomePage({ hasSessionCookie, lastRepo }: HomePageProps) {
             <History className="h-4 w-4" />
             <span>Sessions</span>
           </button>
+          <PointsBalanceLink className="hidden items-center gap-1 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex" />
           <UserAvatarDropdown />
         </div>
       </header>

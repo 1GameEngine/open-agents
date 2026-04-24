@@ -47,6 +47,16 @@ bun run mock:sso
 
 Then set `MBBS_API_BASE_URL=http://127.0.0.1:8840/main` in `apps/web/.env.local` (see `scripts/mock-sso-server.ts` for `MOCK_SSO_USER_ID` and other overrides). Open `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions` with any non-empty `ticket`.
 
+### Verify points deduction + ledger (optional)
+
+After migrations and bootstrap, opt in and run (requires DB reachable at `POSTGRES_URL`):
+
+```bash
+bun run --cwd apps/web test:points-flow
+```
+
+The script sets `RUN_POINTS_FLOW_INTEGRATION=1` for you. Without that flag, the suite is skipped so CI stays fast.
+
 For production, keep only non-secret differences in `apps/web/.env.prod`, and put production secrets in deployment env vars or `apps/web/.env.prod.local`.
 
 ## Getting Started

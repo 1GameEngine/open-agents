@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/hooks/use-session";
 import { estimateModelUsageCost, type AvailableModel } from "@/lib/models";
+import { usdToPoints } from "@/lib/points/cost-to-points";
+import { formatPointsDisplay } from "@/lib/points/format-points-display";
 import { fetcher } from "@/lib/swr";
 import { formatDateOnly } from "@/lib/usage/date-range";
 import type { UsageInsights, UsageRepositoryInsight } from "@/lib/usage/types";
@@ -138,37 +140,6 @@ function aggregateByModel(rows: DailyUsageRow[]): ModelUsage[] {
 function displayModelId(modelId: string): string {
   const slashIndex = modelId.indexOf("/");
   return slashIndex >= 0 ? modelId.slice(slashIndex + 1) : modelId;
-}
-
-function formatUsd(amount: number): string {
-  if (amount >= 100) {
-    return "$" + amount.toLocaleString("en-US", { maximumFractionDigits: 0 });
-  }
-  if (amount >= 1) {
-    return (
-      "$" +
-      amount.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
-  }
-  if (amount >= 0.01) {
-    return (
-      "$" +
-      amount.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
-  }
-  return (
-    "$" +
-    amount.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    })
-  );
 }
 
 function estimateUsageCost(
@@ -400,7 +371,7 @@ function ProfileSidebar({
           </h3>
           <div className="rounded-lg border border-border/50 bg-muted/10 px-4 py-1 divide-y divide-border/50">
             <StatItem label="Total tokens" value={formatTokens(totalTokens)} />
-            <StatItem label="Estimated cost" value={estimatedCostValue} />
+            <StatItem label="预估积分消耗" value={estimatedCostValue} />
             <StatItem
               label="Messages"
               value={totals.messageCount.toLocaleString()}
@@ -481,7 +452,7 @@ export default function ProfilePage() {
   const hasUsage = totals.messageCount > 0;
   const estimatedCostValue =
     costEstimate && costEstimate.pricedTokens > 0
-      ? formatUsd(costEstimate.amount)
+      ? formatPointsDisplay(usdToPoints(costEstimate.amount))
       : "—";
 
   // Build ranked-list items for agent split

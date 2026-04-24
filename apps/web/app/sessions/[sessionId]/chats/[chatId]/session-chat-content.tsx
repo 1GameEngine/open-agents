@@ -117,6 +117,8 @@ import {
   DEFAULT_CONTEXT_LIMIT,
   estimateModelUsageCost,
 } from "@/lib/models";
+import { usdToPoints } from "@/lib/points/cost-to-points";
+import { formatPointsDisplay } from "@/lib/points/format-points-display";
 import { getPrDeploymentRefreshInterval } from "@/lib/pr-deployment-polling";
 import { fetcher } from "@/lib/swr";
 import { streamdownPlugins } from "@/lib/streamdown-config";
@@ -401,37 +403,6 @@ function isSandboxValid(sandboxInfo: SandboxInfo | null): boolean {
   return Date.now() < expiresAt;
 }
 
-function formatUsd(amount: number): string {
-  if (amount >= 100) {
-    return "$" + amount.toLocaleString("en-US", { maximumFractionDigits: 0 });
-  }
-  if (amount >= 1) {
-    return (
-      "$" +
-      amount.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
-  }
-  if (amount >= 0.01) {
-    return (
-      "$" +
-      amount.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
-  }
-  return (
-    "$" +
-    amount.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    })
-  );
-}
-
 type MessageUsageTotals = {
   inputTokens: number;
   cachedInputTokens: number;
@@ -494,25 +465,25 @@ function getConversationUsage(
 type ConversationCostSource = "gateway" | "estimate" | "mixed";
 
 type ConversationCost = {
-  total: number;
+  /** Billable points (per-message `usdToPoints`, summed). */
+  totalPoints: number;
   source: ConversationCostSource;
 };
 
 /**
- * Compute the cumulative USD cost across every assistant message in the
- * conversation. Per-message preference order:
- *   1. Gateway-reported `totalMessageCost` (authoritative when present).
- *   2. Token-based estimate from `totalMessageUsage` / `lastStepUsage`.
+ * Compute cumulative billable points across every assistant message. Per-message
+ * preference order:
+ *   1. Gateway-reported `totalMessageCost` → `usdToPoints` (matches server deduction).
+ *   2. Token-based USD estimate → `usdToPoints` for that message only.
  *
- * Returns `undefined` when no cost can be attributed to any message (e.g. no
- * usage metadata and no gateway cost), matching the previous "hide the row"
- * behavior. The `source` discriminant lets the UI label the figure correctly.
+ * Returns `undefined` when no cost can be attributed to any message. The
+ * `source` discriminant lets the UI label the row correctly.
  */
 function getConversationCost(
   messages: WebAgentUIMessage[],
   modelCost: AvailableModelCost | undefined,
 ): ConversationCost | undefined {
-  let total = 0;
+  let totalPoints = 0;
   let hasAnyCost = false;
   let sawGateway = false;
   let sawEstimate = false;
@@ -528,7 +499,7 @@ function getConversationCost(
       Number.isFinite(gatewayCost) &&
       gatewayCost >= 0
     ) {
-      total += gatewayCost;
+      totalPoints += usdToPoints(gatewayCost);
       hasAnyCost = true;
       sawGateway = true;
       continue;
@@ -548,7 +519,7 @@ function getConversationCost(
       continue;
     }
 
-    total += estimatedCost;
+    totalPoints += usdToPoints(estimatedCost);
     hasAnyCost = true;
     sawEstimate = true;
   }
@@ -560,7 +531,7 @@ function getConversationCost(
   const source: ConversationCostSource =
     sawGateway && sawEstimate ? "mixed" : sawGateway ? "gateway" : "estimate";
 
-  return { total, source };
+  return { totalPoints, source };
 }
 
 function sleep(ms: number): Promise<void> {
@@ -679,13 +650,13 @@ function ContextUsageIndicator({
             <div className="flex justify-between gap-6">
               <span className="opacity-60">
                 {conversationCost.source === "gateway"
-                  ? "Cost"
+                  ? "Points spent"
                   : conversationCost.source === "mixed"
-                    ? "Cost (partial est.)"
-                    : "Est. cost"}
+                    ? "Points spent (partial est.)"
+                    : "Est. points spent"}
               </span>
               <span className="tabular-nums">
-                {formatUsd(conversationCost.total)}
+                {formatPointsDisplay(conversationCost.totalPoints)}
               </span>
             </div>
           ) : null}

@@ -16,7 +16,8 @@
     "db:studio": "drizzle-kit studio",
     "db:check": "bun run scripts/check-migrations.ts",
     "workflow:setup": "npx workflow-postgres-setup",
-    "bootstrap": "bun run scripts/bootstrap-admin.ts"
+    "bootstrap": "bun run scripts/bootstrap-admin.ts",
+    "seed:points-deduct": "bun run scripts/run-with-env.ts bun run scripts/seed-points-deduction-demo.ts"
   },
   "dependencies": {
     "@ai-sdk/elevenlabs": "^2.0.29",

@@ -91,6 +91,8 @@ MBBS_API_BASE_URL=http://127.0.0.1:8840/main
 
 根路径 `/` 仍会按 `NEXT_PUBLIC_BBS_BASE_URL` 跳转 BBS 中转页；调试 SSO 时优先使用上述直连地址更省事。
 
+**验证积分流水（无需真实 AI）**：在 `apps/web` 且 PGlite/数据库已就绪时执行 `bun run seed:points-deduct`。脚本会为 Mock SSO 用户（`externalId` = `1game:dev-local-1`，若不存在则用库中第一个用户）插入最小会话并调用与线上一致的 `deductPoints`，然后打开 `/settings/points` 应能看到一条消耗记录，侧栏余额减少（默认按 `$0.005` 扣 5 点）。
+
 ### 6. 初始化管理员与 API Key
 
 首次启动系统后，数据库是空的。你需要运行初始化脚本来创建第一个管理员用户和对应的 API Key：

@@ -92,7 +92,7 @@ mock.module("nanoid", () => ({ nanoid: () => "test-nanoid-id" }));
 
 // ── Import module under test (after all mocks) ────────────────────
 const { usdToPoints, checkAndResetDailyPoints, deductPoints } =
-  await import("./service");
+  await import("./service-impl");
 
 // ── Helpers ───────────────────────────────────────────────────────
 function todayUtc(): string {

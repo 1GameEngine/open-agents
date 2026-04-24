@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { WebAgentUIMessage } from "@/app/types";
 
+// Must appear before any import that transitively pulls in server-only
+mock.module("server-only", () => ({}));
+
+mock.module("@/lib/points/service", () => ({
+  deductPoints: mock(() => Promise.resolve()),
+}));
+
 // ── Mutable spy state ──────────────────────────────────────────────
 
 let createChatMessageIfNotExistsResult: unknown = { id: "msg-1" };

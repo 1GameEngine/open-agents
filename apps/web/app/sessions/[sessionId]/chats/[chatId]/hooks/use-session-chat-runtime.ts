@@ -3,6 +3,7 @@
 import { type UseChatHelpers, useChat } from "@ai-sdk/react";
 import { isToolUIPart } from "ai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { mutate } from "swr";
 import type { WebAgentUIMessage } from "@/app/types";
 import { AbortableChatTransport } from "@/lib/abortable-chat-transport";
 import {
@@ -10,6 +11,7 @@ import {
   getOrCreateChatInstance,
 } from "@/lib/chat-instance-manager";
 import { cleanupChatRouteOnUnmount } from "@/lib/chat-route-cleanup";
+import { POINTS_BALANCE_SWR_KEY } from "@/lib/points/swr-key";
 
 const CHAT_UI_UPDATE_THROTTLE_MS = 75;
 
@@ -110,6 +112,16 @@ export function useSessionChatRuntime({
     [sessionId, chatId],
   );
 
+  const onChatFinish = useCallback(
+    ({ isAbort, isError }: { isAbort: boolean; isError: boolean }) => {
+      if (isAbort || isError) {
+        return;
+      }
+      void mutate(POINTS_BALANCE_SWR_KEY);
+    },
+    [],
+  );
+
   const { instance: chatInstance, alreadyExisted } = useMemo(
     () =>
       getOrCreateChatInstance(chatId, {
@@ -117,6 +129,7 @@ export function useSessionChatRuntime({
         transport,
         messages: initialMessages,
         sendAutomaticallyWhen: shouldAutoSubmit,
+        onFinish: onChatFinish,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only create once per chatId; init values are only used at creation time
     [chatId],

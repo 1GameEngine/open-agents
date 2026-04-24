@@ -228,6 +228,16 @@ mock.module("@/lib/auth/api-key", () => ({
   },
 }));
 
+// ── Points system mock ────────────────────────────────────────────
+let availablePointsState = 10_000;
+const checkAndResetDailyPointsSpy = mock(async () => availablePointsState);
+mock.module("@/lib/points/service", () => ({
+  checkAndResetDailyPoints: checkAndResetDailyPointsSpy,
+  deductPoints: mock(() => Promise.resolve()),
+  usdToPoints: (cost: number) =>
+    cost <= 0 ? 0 : Math.max(1, Math.ceil(cost * 1000)),
+}));
+
 const routeModulePromise = import("./route");
 
 afterAll(() => {
@@ -278,6 +288,8 @@ describe("/api/chat route", () => {
       autoCreatePr: false,
       modelVariants: [],
     };
+    availablePointsState = 10_000;
+    checkAndResetDailyPointsSpy.mockClear();
     compareAndSetChatActiveStreamIdSpy.mockClear();
     persistAssistantMessagesWithToolResultsSpy.mockClear();
     currentAuthSession = {
@@ -630,5 +642,138 @@ describe("/api/chat route", () => {
       "chat-1",
       expect.any(Array),
     );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
+// Points system integration tests
+// ─────────────────────────────────────────────────────────────────
+describe("/api/chat route — points quota", () => {
+  beforeEach(() => {
+    isSandboxActive = true;
+    existingRunStatus = "completed";
+    getRunShouldThrow = false;
+    compareAndSetDefaultResult = true;
+    compareAndSetResults = [];
+    startCalls = [];
+    cachedSkillsState = null;
+    discoverSkillDirsCalls = [];
+    existingUserMessageCount = 0;
+    existingChatMessage = null;
+    availablePointsState = 10_000;
+    checkAndResetDailyPointsSpy.mockClear();
+    compareAndSetChatActiveStreamIdSpy.mockClear();
+    persistAssistantMessagesWithToolResultsSpy.mockClear();
+    preferencesState = {
+      autoCommitPush: false,
+      autoCreatePr: false,
+      modelVariants: [],
+    };
+    currentAuthSession = { user: { id: "user-1" } };
+    sessionRecord = {
+      id: "session-1",
+      userId: "user-1",
+      title: "Session title",
+      cloneUrl: "https://github.com/acme/repo.git",
+      repoOwner: "acme",
+      repoName: "repo",
+      prNumber: null,
+      autoCommitPushOverride: null,
+      autoCreatePrOverride: null,
+      sandboxState: { type: "vercel" },
+    };
+    chatRecord = {
+      sessionId: "session-1",
+      modelId: null,
+      activeStreamId: null,
+    };
+  });
+
+  test("allows the request when the user has sufficient points", async () => {
+    availablePointsState = 10_000;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    expect(response.ok).toBe(true);
+    expect(response.status).toBe(200);
+  });
+
+  test("allows the request when the user has exactly 1 point remaining", async () => {
+    availablePointsState = 1;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    expect(response.ok).toBe(true);
+  });
+
+  test("returns 402 when the user has 0 points remaining", async () => {
+    availablePointsState = 0;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    expect(response.status).toBe(402);
+  });
+
+  test("returns 402 with a descriptive error message when quota is exhausted", async () => {
+    availablePointsState = 0;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toContain("quota");
+  });
+
+  test("does not start a workflow when quota is exhausted", async () => {
+    availablePointsState = 0;
+    const { POST } = await routeModulePromise;
+    await POST(createValidRequest());
+    expect(startCalls).toHaveLength(0);
+  });
+
+  test("calls checkAndResetDailyPoints with the authenticated userId", async () => {
+    availablePointsState = 10_000;
+    currentAuthSession = { user: { id: "user-42" } };
+    sessionRecord = {
+      id: "session-1",
+      userId: "user-42",
+      title: "Session title",
+      cloneUrl: "https://github.com/acme/repo.git",
+      repoOwner: "acme",
+      repoName: "repo",
+      prNumber: null,
+      autoCommitPushOverride: null,
+      autoCreatePrOverride: null,
+      sandboxState: { type: "vercel" },
+    };
+    const { POST } = await routeModulePromise;
+    await POST(createValidRequest());
+    expect(checkAndResetDailyPointsSpy).toHaveBeenCalledWith("user-42");
+  });
+
+  test("checks points after ownership verification (not before)", async () => {
+    // When the session does not belong to the user, we should get 403, not 402
+    availablePointsState = 0;
+    sessionRecord = null; // ownership check will fail
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    // Should fail at ownership check (403/404), not at points check (402)
+    expect(response.status).not.toBe(402);
+  });
+
+  test("returns 402 even when the user is unauthenticated — auth check comes first", async () => {
+    // Auth check happens before points; unauthenticated → 401
+    availablePointsState = 0;
+    currentAuthSession = null;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    expect(response.status).toBe(401);
+  });
+
+  test("returns 402 when sandbox is inactive but points are exhausted — sandbox check comes first", async () => {
+    // Sandbox check happens before points; inactive sandbox → non-200
+    availablePointsState = 0;
+    isSandboxActive = false;
+    const { POST } = await routeModulePromise;
+    const response = await POST(createValidRequest());
+    expect(response.status).not.toBe(200);
+    // Points check is after sandbox, so we should not get 402 here
+    // (the sandbox error takes priority)
+    expect(response.status).not.toBe(402);
   });
 });

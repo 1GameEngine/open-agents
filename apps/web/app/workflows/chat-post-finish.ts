@@ -24,6 +24,7 @@ import {
   type WorkflowRunStepTiming,
 } from "@/lib/db/workflow-runs";
 import { recordUsage } from "@/lib/db/usage";
+import { deductPoints } from "@/lib/points/service";
 
 const cachedInputTokensFor = (usage: LanguageModelUsage) =>
   usage.inputTokenDetails?.cacheReadTokens ?? usage.cachedInputTokens ?? 0;
@@ -246,6 +247,25 @@ export async function recordWorkflowUsage(
   },
 ): Promise<void> {
   "use step";
+
+  // Deduct points based on gateway-reported cost for this turn.
+  if (workflowRun) {
+    try {
+      const totalMessageCost =
+        typeof responseMessage.metadata?.totalMessageCost === "number"
+          ? responseMessage.metadata.totalMessageCost
+          : undefined;
+      await deductPoints({
+        userId,
+        sessionId: workflowRun.sessionId,
+        chatId: workflowRun.chatId,
+        modelId,
+        usdCost: totalMessageCost,
+      });
+    } catch (error) {
+      console.error("[workflow] Failed to deduct points:", error);
+    }
+  }
 
   try {
     const { collectTaskToolUsageEvents, sumLanguageModelUsage } =

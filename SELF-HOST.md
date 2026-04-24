@@ -89,7 +89,23 @@ MBBS_API_BASE_URL=http://127.0.0.1:8840/main
 
 `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions`
 
-根路径 `/` 仍会按 `NEXT_PUBLIC_BBS_BASE_URL` 跳转 BBS 中转页；调试 SSO 时优先使用上述直连地址更省事。
+当 `MBBS_API_BASE_URL=http://127.0.0.1:8840/main`（或 `localhost:8840/main`）时，开发环境下根路径 `/` 会直接走本地 SSO 回调：
+
+`/api/auth/sso?ticket=local-dev&redirect=/sessions`
+
+也就是说在 Mock SSO 场景中，`/` 不再依赖 BBS 中转页；你可以直接从根路径进入会话页面。
+
+### 5.1 Cloud / 容器浏览器访问说明
+
+在远程 VM/容器里开发时，桌面浏览器访问 `localhost:3000` 可能无法连到实际应用进程。此时请使用 Next.js 启动日志里的 Network 地址（例如 `http://172.30.0.2:3000`）。
+
+本仓库已在 `apps/web/next.config.ts` 中预置：
+
+```ts
+allowedDevOrigins: ["127.0.0.1", "172.30.0.2"];
+```
+
+如果你的 VM 地址不同，请把对应 host 加到 `allowedDevOrigins` 并重启 `bun run web:dev:pglite`。
 
 ### 6. 初始化管理员与 API Key
 

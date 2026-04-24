@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { usePointsBalance } from "@/hooks/use-points-balance";
 import { usdToPoints } from "@/lib/points/cost-to-points";
+import { formatPointsDisplay } from "@/lib/points/format-points-display";
 
 interface MessageModelPillProps {
   metadata: WebAgentMessageMetadata;
@@ -22,10 +23,9 @@ interface MessageModelPillProps {
 
 /**
  * Format a points count for compact display (turn charge or balance).
- * e.g. 10000 → "10,000 pts"  |  500 → "500 pts"
  */
 function formatPoints(pts: number): string {
-  return pts.toLocaleString("en-US") + " pts";
+  return `${pts.toLocaleString("zh-CN")} 积分`;
 }
 
 /**
@@ -34,8 +34,8 @@ function formatPoints(pts: number): string {
  *
  * - Normal turn: shows the model display name.
  * - Variant turn: shows the variant label; tooltip reveals the resolved model.
- * - When the gateway reports a cost, the same USD amount is converted to
- *   billable points (matching server deduction) and shown next to the model name.
+ * - When the gateway reports a cost, it is converted to billable points
+ *   (matching server deduction) and shown next to the model name.
  * - When points balance is available, remaining quota is shown after that
  *   (e.g. "· 9,750 pts left") so you see per-turn charge and daily balance.
  */
@@ -107,14 +107,11 @@ export function MessageModelPill({
   }
   if (hasCost) {
     const usd = totalMessageCost as number;
-    tooltipParts.push(
-      `Points charged: ${formatPoints(usdToPoints(usd))}`,
-      `Gateway cost: $${usd.toFixed(6)} USD`,
-    );
+    tooltipParts.push(`本轮消耗：${formatPointsDisplay(usdToPoints(usd))}`);
   }
   if (hasBalance) {
     tooltipParts.push(
-      `Remaining today: ${formatPoints(balance)} / ${formatPoints(dailyMax)}`,
+      `今日剩余：${formatPoints(balance)} / ${formatPoints(dailyMax)}`,
     );
   }
 
@@ -138,7 +135,7 @@ export function MessageModelPill({
             ·
           </span>
           <span className={`tabular-nums ${balanceColor}`}>
-            {formatPoints(balance)} left
+            {formatPoints(balance)} 剩余
           </span>
         </>
       )}

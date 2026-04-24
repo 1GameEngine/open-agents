@@ -33,8 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
-  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
   Tooltip,
@@ -597,7 +597,8 @@ const SessionRow = memo(function SessionRow({
 
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-      <PopoverTrigger asChild>{rowButton}</PopoverTrigger>
+      {/* Anchor only (no Trigger): Trigger adds Radix attrs that can block clicks on the row. */}
+      <PopoverAnchor asChild>{rowButton}</PopoverAnchor>
       <PopoverContent
         side="right"
         align="start"

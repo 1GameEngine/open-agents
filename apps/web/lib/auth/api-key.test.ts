@@ -7,6 +7,9 @@ mock.module("next/headers", () => ({
   headers: async () => ({
     get: (name: string) => (name === "authorization" ? headerValue : null),
   }),
+  cookies: async () => ({
+    get: () => undefined,
+  }),
 }));
 
 mock.module("@/lib/db/api-keys", () => ({

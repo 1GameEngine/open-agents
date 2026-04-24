@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings } from "lucide-react";
+import { Coins, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,11 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePointsBalance } from "@/hooks/use-points-balance";
 import { useSession } from "@/hooks/use-session";
 
 function handleSignOut() {
@@ -25,10 +27,21 @@ function handleSignOut() {
 
 export function UserAvatarDropdown() {
   const { session } = useSession();
+  const {
+    balance,
+    dailyMax,
+    isLoading: balanceLoading,
+    error: balanceError,
+  } = usePointsBalance();
 
   if (!session?.user) {
     return null;
   }
+
+  const balanceText =
+    balanceError || balance === null || balanceLoading
+      ? "…"
+      : `${balance.toLocaleString("zh-CN")} / ${dailyMax.toLocaleString("zh-CN")}`;
 
   return (
     <DropdownMenu>
@@ -49,8 +62,37 @@ export function UserAvatarDropdown() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel className="space-y-2 font-normal">
+          <p className="truncate text-sm font-semibold leading-none">
+            {session.user.username}
+          </p>
+          {session.user.email ? (
+            <p className="truncate text-xs text-muted-foreground">
+              {session.user.email}
+            </p>
+          ) : null}
+          <Link
+            href="/settings/points"
+            className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/40 px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Coins className="h-3.5 w-3.5 shrink-0 text-foreground/70" />
+            <span className="min-w-0 flex-1">
+              <span className="text-muted-foreground">今日积分 </span>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {balanceText}
+              </span>
+            </span>
+          </Link>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/settings/points">
+              <Coins className="mr-2 h-4 w-4" />
+              积分明细
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/settings">
               <Settings className="mr-2 h-4 w-4" />

@@ -19,6 +19,7 @@ import type { CSSProperties } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BranchPickerDialog } from "@/components/branch-picker-dialog";
 import { getValidRenameTitle } from "@/components/inbox-sidebar-rename";
+import { PointsBalanceLink } from "@/components/points-balance-link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -1160,6 +1161,9 @@ export function InboxSidebar({
 
       {sidebarUser ? (
         <div className="border-t border-border p-3">
+          <div className="mb-2 px-2">
+            <PointsBalanceLink className="flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" />
+          </div>
           <div className="flex items-center gap-2 rounded-lg p-2">
             <Avatar className="h-9 w-9 shrink-0">
               {sidebarUser.avatar ? (

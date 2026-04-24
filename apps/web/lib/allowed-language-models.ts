@@ -5,11 +5,11 @@ import type { AvailableModel } from "@/lib/models";
  * Order is preserved within each provider group in the UI.
  */
 export const ALLOWED_LANGUAGE_MODEL_IDS: readonly string[] = [
-  "moonshotai/kimi-k2.5",
+  "deepseek/deepseek-v4-pro",
+  "deepseek/deepseek-v4-flash",
   "moonshotai/kimi-k2.6",
   "alibaba/qwen3.6-plus",
   "openai/gpt-5.4-mini",
-  "openai/gpt-5.4-nano",
   "openai/gpt-5.3-codex",
   "google/gemini-3.1-flash-lite-preview",
   "google/gemini-3-flash",

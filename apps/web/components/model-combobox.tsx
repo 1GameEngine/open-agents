@@ -42,8 +42,15 @@ interface ModelComboboxProps {
   onChange: (value: string) => void;
 }
 
-/** Providers pinned to the top. */
-const PRIORITY_PROVIDERS = ["anthropic", "openai"];
+/** Providers pinned to the top (matches main model selector ordering). */
+const PRIORITY_PROVIDERS = [
+  "deepseek",
+  "moonshotai",
+  "alibaba",
+  "openai",
+  "google",
+  "anthropic",
+];
 
 function groupByProvider(items: ModelComboboxItem[]) {
   const groups: Record<string, ModelComboboxItem[]> = {};

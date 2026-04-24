@@ -77,19 +77,25 @@ bun run dev:pglite
 bun run mock:sso
 ```
 
-默认监听 `http://127.0.0.1:8840`，返回固定用户（如 `id` 为 `dev-local-1`）。在 `apps/web/.env.local` 中设置：
+该命令会同时启动：
+
+1. **票据校验 API**：默认 `http://127.0.0.1:8840/main/sso/verify?ticket=...`，返回固定用户（如 `id` 为 `dev-local-1`）。
+2. **最小 BBS 中转页**：默认 `http://127.0.0.1:8841/`，解析地址栏 hash 中的 `#/sso/jump?sso_callback_url=...` 并带上 `ticket` 跳回 agents，这样根路径 `/` 的 SSO 重定向也能在纯本地跑通。
+
+在 `apps/web/.env.local`（或已对齐的 `.env`）中设置：
 
 ```env
 MBBS_API_BASE_URL=http://127.0.0.1:8840/main
+NEXT_PUBLIC_BBS_BASE_URL=http://127.0.0.1:8841
 ```
 
-可通过环境变量覆盖默认用户与端口，例如 `MOCK_SSO_USER_ID`、`MOCK_SSO_USERNAME`、`MOCK_SSO_PORT` 等，完整列表见 `scripts/mock-sso-server.ts` 文件顶部注释。
+可通过环境变量覆盖默认用户与端口，例如 `MOCK_SSO_USER_ID`、`MOCK_SSO_USERNAME`、`MOCK_SSO_PORT`、`MOCK_BBS_PORT`、`MOCK_SSO_TICKET` 等，完整列表见 `scripts/mock-sso-server.ts` 文件顶部注释。
 
 启动 Web 后，可直接在浏览器访问（`ticket` 可为任意非空字符串）：
 
 `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions`
 
-根路径 `/` 仍会按 `NEXT_PUBLIC_BBS_BASE_URL` 跳转 BBS 中转页；调试 SSO 时优先使用上述直连地址更省事。
+或在 **mock:sso 已运行** 时直接打开 `http://localhost:3000/`：会先跳到 8841 中转页再回 `/api/auth/sso` 完成登录。
 
 ### 6. 初始化管理员与 API Key
 

@@ -4,16 +4,25 @@
  * The web app calls: `${MBBS_API_BASE_URL}/sso/verify?ticket=...`
  * with `MBBS_API_BASE_URL` like `http://127.0.0.1:8840/main` (trailing slash optional).
  *
+ * Also serves a tiny **mock BBS** on `MOCK_BBS_PORT` (default 8841): `GET /` returns
+ * static HTML that reads `/#/sso/jump?sso_callback_url=...` from `location.hash` and
+ * redirects the browser to that URL with `ticket` appended — same behavior the real
+ * BBS SPA would perform after login, so `NEXT_PUBLIC_BBS_BASE_URL=http://localhost:8841`
+ * works without a separate frontend.
+ *
  * Usage:
  *   bun run mock:sso
  *
  * Environment (all optional):
- *   MOCK_SSO_PORT        — listen port (default 8840)
- *   MOCK_SSO_HOST        — bind address (default 127.0.0.1)
+ *   MOCK_SSO_PORT        — verify API listen port (default 8840)
+ *   MOCK_SSO_HOST        — verify API bind address (default 127.0.0.1)
+ *   MOCK_BBS_PORT        — mock BBS static page port (default 8841)
+ *   MOCK_BBS_HOST        — mock BBS bind address (default 127.0.0.1)
  *   MOCK_SSO_USER_ID     — fixed `data.id` in verify response (default dev-local-1)
  *   MOCK_SSO_USERNAME    — fixed username (default dev-user)
  *   MOCK_SSO_NICKNAME    — fixed nickname (default Local Dev)
  *   MOCK_SSO_AVATAR      — optional avatar URL in response
+ *   MOCK_SSO_TICKET     — ticket appended by mock BBS redirect (default local-dev)
  */
 
 interface MbbsVerifyPayload {
@@ -38,9 +47,13 @@ function readEnvInt(name: string, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-const host = process.env.MOCK_SSO_HOST ?? "127.0.0.1";
-const port = readEnvInt("MOCK_SSO_PORT", 8840);
+const verifyHost = process.env.MOCK_SSO_HOST ?? "127.0.0.1";
+const verifyPort = readEnvInt("MOCK_SSO_PORT", 8840);
 const verifyPath = "/main/sso/verify";
+
+const bbsHost = process.env.MOCK_BBS_HOST ?? "127.0.0.1";
+const bbsPort = readEnvInt("MOCK_BBS_PORT", 8841);
+const mockTicket = process.env.MOCK_SSO_TICKET ?? "local-dev";
 
 const payload: MbbsVerifyPayload = {
   id: process.env.MOCK_SSO_USER_ID ?? "dev-local-1",
@@ -60,9 +73,43 @@ const body: MbbsApiResponse<MbbsVerifyPayload> = {
 
 const json = JSON.stringify(body);
 
+/** Minimal page: parse `/#/sso/jump?sso_callback_url=...` and redirect with ticket. */
+const mockBbsJumpHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mock SSO jump</title>
+  </head>
+  <body>
+    <p id="s">Completing sign-in…</p>
+    <script>
+      (function () {
+        var h = location.hash || "";
+        var q = h.indexOf("?");
+        var qs = q >= 0 ? h.slice(q + 1) : "";
+        var sp = new URLSearchParams(qs);
+        var cb = sp.get("sso_callback_url");
+        var el = document.getElementById("s");
+        if (!cb) {
+          if (el) el.textContent = "Missing sso_callback_url in hash (expected #/sso/jump?...).";
+          return;
+        }
+        try {
+          var u = new URL(cb);
+          u.searchParams.set("ticket", ${JSON.stringify(mockTicket)});
+          location.replace(u.toString());
+        } catch (e) {
+          if (el) el.textContent = "Invalid sso_callback_url: " + cb;
+        }
+      })();
+    </script>
+  </body>
+</html>
+`;
+
 Bun.serve({
-  hostname: host,
-  port,
+  hostname: verifyHost,
+  port: verifyPort,
   fetch(req) {
     const url = new URL(req.url);
     if (req.method !== "GET" || url.pathname !== verifyPath) {
@@ -80,9 +127,29 @@ Bun.serve({
   },
 });
 
+Bun.serve({
+  hostname: bbsHost,
+  port: bbsPort,
+  fetch(req) {
+    if (req.method !== "GET") {
+      return new Response("Method Not Allowed", { status: 405 });
+    }
+    return new Response(mockBbsJumpHtml, {
+      status: 200,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    });
+  },
+});
+
 console.log(
-  `[mock-sso] listening on http://${host}:${port}${verifyPath} — user id: ${String(payload.id)} (set MOCK_SSO_USER_ID to override)`,
+  `[mock-sso] verify API http://${verifyHost}:${verifyPort}${verifyPath} — user id: ${String(payload.id)} (set MOCK_SSO_USER_ID to override)`,
 );
 console.log(
-  `[mock-sso] point MBBS_API_BASE_URL at http://${host}:${port}/main in apps/web/.env.local`,
+  `[mock-sso] mock BBS jump page http://${bbsHost}:${bbsPort}/ — redirects with ticket=${mockTicket}`,
+);
+console.log(
+  `[mock-sso] point MBBS_API_BASE_URL at http://${verifyHost}:${verifyPort}/main in apps/web/.env.local`,
 );

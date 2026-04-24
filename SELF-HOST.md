@@ -93,6 +93,15 @@ MBBS_API_BASE_URL=http://127.0.0.1:8840/main
 
 **验证积分流水（无需真实 AI）**：在 `apps/web` 且 PGlite/数据库已就绪时执行 `bun run seed:points-deduct`。脚本会为 Mock SSO 用户（`externalId` = `1game:dev-local-1`，若不存在则用库中第一个用户）插入最小会话并调用与线上一致的 `deductPoints`，然后打开 `/settings/points` 应能看到一条消耗记录，侧栏余额减少（默认按 `$0.005` 扣 5 点）。
 
+**验证真实 AI 会话扣积分**（需 `AI_GATEWAY_API_KEY` 与运行中的 `bun run dev:pglite`）：
+
+```bash
+# 使用与当前数据库中用户绑定的 self-hosted API key（bootstrap 或 SSO 下发的 oha_…）
+E2E_API_KEY=oha_... bun run --cwd apps/web e2e:real-ai-points
+```
+
+脚本会：创建会话 → `POST /api/sandbox` → `POST /api/chat` 发一条极短用户消息并消费完整流 → 轮询 `/api/points/balance` 与 `/api/points/transactions` 直到余额下降或出现对应 `consume` 流水（超时则失败退出）。
+
 ### 6. 初始化管理员与 API Key
 
 首次启动系统后，数据库是空的。你需要运行初始化脚本来创建第一个管理员用户和对应的 API Key：

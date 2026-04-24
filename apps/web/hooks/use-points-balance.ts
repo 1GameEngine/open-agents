@@ -10,13 +10,14 @@ import { fetcher } from "@/lib/swr";
  * Re-validates automatically after each AI response completes (caller should
  * call `mutate()` after a chat round-trip).
  */
-export function usePointsBalance() {
+export function usePointsBalance(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const { data, error, isLoading, mutate } = useSWR<PointsBalanceResponse>(
-    POINTS_BALANCE_SWR_KEY,
+    enabled ? POINTS_BALANCE_SWR_KEY : null,
     fetcher,
     {
-      // Revalidate every 30 s so the display stays reasonably fresh.
-      refreshInterval: 30_000,
+      // Revalidate periodically so sidebar and chat stay in sync with usage.
+      refreshInterval: 15_000,
       // Keep showing stale data while revalidating to avoid flicker.
       revalidateOnFocus: false,
     },

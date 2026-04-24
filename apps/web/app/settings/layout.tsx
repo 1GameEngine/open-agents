@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Cable,
+  Coins,
   LogOut,
   Menu,
   Settings as SettingsIcon,
@@ -67,6 +68,12 @@ const sidebarItems = [
     label: "Profile",
     href: "/settings/profile",
     icon: User,
+  },
+  {
+    id: "points",
+    label: "每日积分",
+    href: "/settings/points",
+    icon: Coins,
   },
   {
     id: "connections",
@@ -229,7 +236,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const activeItem = sidebarItems.find((item) => item.href === pathname);
   const fallbackTitle = activeItem?.label ?? "Profile";
   const fallbackContent =
-    activeItem?.id === "connections" ? (
+    activeItem?.id === "points" ? (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-40 w-full rounded-lg" />
+      </div>
+    ) : activeItem?.id === "connections" ? (
       <ConnectionsPageSkeleton />
     ) : activeItem?.id === "preferences" ? (
       <PreferencesSectionSkeleton />

@@ -3,6 +3,7 @@
 import {
   Archive,
   ChevronDown,
+  Coins,
   FolderGit2,
   GitBranch,
   GitMerge,
@@ -43,6 +44,7 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLeaderboardRank } from "@/hooks/use-leaderboard-rank";
+import { usePointsBalance } from "@/hooks/use-points-balance";
 import { useSession } from "@/hooks/use-session";
 import type { SessionWithUnread } from "@/hooks/use-sessions";
 import type { Session as AuthSession } from "@/lib/session/types";
@@ -754,6 +756,8 @@ export function InboxSidebar({
     (!showArchived && sessionsLoading && sessions.length === 0) ||
     (showArchived && archivedSessionsLoading && archivedSessions.length === 0);
   const sidebarUser = session?.user ?? initialUser;
+  const { balance: pointsBalance, isLoading: pointsBalanceLoading } =
+    usePointsBalance({ enabled: Boolean(sidebarUser) });
   const groupedSessions = useMemo(
     () => groupSessionsByRepo(displayedSessions),
     [displayedSessions],
@@ -1176,6 +1180,22 @@ export function InboxSidebar({
               <p className="truncate text-sm font-semibold leading-none text-foreground">
                 {sidebarUser.username}
               </p>
+              <Link
+                href="/settings/points"
+                className="mt-1 flex items-center gap-1.5 rounded-md py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              >
+                <Coins className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                {pointsBalanceLoading ? (
+                  <span className="inline-block h-3.5 w-16 animate-pulse rounded bg-muted" />
+                ) : (
+                  <span className="font-mono tabular-nums">
+                    今日积分{" "}
+                    <span className="font-semibold text-foreground/80">
+                      {pointsBalance?.toLocaleString("zh-CN") ?? "—"}
+                    </span>
+                  </span>
+                )}
+              </Link>
               {sidebarUser.email ? (
                 <p className="mt-1 truncate text-xs text-muted-foreground">
                   {sidebarUser.email}

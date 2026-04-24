@@ -57,6 +57,8 @@ bun run --cwd apps/web test:points-flow
 
 The script sets `RUN_POINTS_FLOW_INTEGRATION=1` for you. Without that flag, the suite is skipped so CI stays fast.
 
+Requires a **reachable** database at `POSTGRES_URL` (for example start `bun run web:dev:pglite` or your Postgres first). If nothing is listening, the test fails with a connection timeout.
+
 For production, keep only non-secret differences in `apps/web/.env.prod`, and put production secrets in deployment env vars or `apps/web/.env.prod.local`.
 
 ## Getting Started

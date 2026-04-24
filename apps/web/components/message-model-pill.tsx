@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { usePointsBalance } from "@/hooks/use-points-balance";
+import { usdToPoints } from "@/lib/points/cost-to-points";
 
 interface MessageModelPillProps {
   metadata: WebAgentMessageMetadata;
@@ -20,38 +21,7 @@ interface MessageModelPillProps {
 }
 
 /**
- * Format a USD cost for compact display alongside the model name.
- * Uses 4 decimals for sub-dollar amounts (typical for a single message)
- * and 2 decimals once we cross $1.
- */
-function formatCostUsd(amount: number): string {
-  if (amount === 0) {
-    return "$0";
-  }
-  if (amount >= 1) {
-    return (
-      "$" +
-      amount.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
-  }
-  // Show at least one significant digit for very small costs; cap at 4 decimals.
-  if (amount < 0.0001) {
-    return "<$0.0001";
-  }
-  return (
-    "$" +
-    amount.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    })
-  );
-}
-
-/**
- * Format a points balance for compact display.
+ * Format a points count for compact display (turn charge or balance).
  * e.g. 10000 → "10,000 pts"  |  500 → "500 pts"
  */
 function formatPoints(pts: number): string {
@@ -64,10 +34,10 @@ function formatPoints(pts: number): string {
  *
  * - Normal turn: shows the model display name.
  * - Variant turn: shows the variant label; tooltip reveals the resolved model.
- * - When the gateway reports a cost, the cumulative USD cost is rendered
- *   next to the model name.
- * - When points balance is available, it is shown after the cost as a
- *   remaining-quota indicator (e.g. "· 9,750 pts left").
+ * - When the gateway reports a cost, the same USD amount is converted to
+ *   billable points (matching server deduction) and shown next to the model name.
+ * - When points balance is available, remaining quota is shown after that
+ *   (e.g. "· 9,750 pts left") so you see per-turn charge and daily balance.
  */
 export function MessageModelPill({
   metadata,
@@ -114,6 +84,8 @@ export function MessageModelPill({
     Number.isFinite(totalMessageCost) &&
     totalMessageCost >= 0;
 
+  const turnPointsCharged = hasCost ? usdToPoints(totalMessageCost) : null;
+
   const hasBalance =
     typeof balance === "number" && typeof dailyMax === "number";
 
@@ -134,8 +106,10 @@ export function MessageModelPill({
     tooltipParts.push(resolvedOption?.label ?? resolvedModelId);
   }
   if (hasCost) {
+    const usd = totalMessageCost as number;
     tooltipParts.push(
-      `Cost: ${(totalMessageCost as number).toFixed(6)} (gateway)`,
+      `Points charged: ${formatPoints(usdToPoints(usd))}`,
+      `Gateway cost: $${usd.toFixed(6)} USD`,
     );
   }
   if (hasBalance) {
@@ -148,13 +122,13 @@ export function MessageModelPill({
     <span className="inline-flex max-w-[420px] items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-tight text-muted-foreground/50 transition-colors hover:text-muted-foreground/80">
       <ProviderIcon provider={provider} className="size-3 shrink-0" />
       <span className="truncate">{shortLabel}</span>
-      {hasCost && (
+      {hasCost && turnPointsCharged !== null && (
         <>
           <span aria-hidden className="text-muted-foreground/30">
             ·
           </span>
           <span className="tabular-nums">
-            {formatCostUsd(totalMessageCost as number)}
+            {formatPoints(turnPointsCharged)}
           </span>
         </>
       )}

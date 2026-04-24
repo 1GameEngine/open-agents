@@ -3,23 +3,16 @@ import { eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db/client";
 import { DAILY_FREE_POINTS } from "@/lib/points/constants";
+import { usdToPoints } from "@/lib/points/cost-to-points";
 import { pointTransactions, userPoints } from "@/lib/db/schema";
+
+export { usdToPoints } from "@/lib/points/cost-to-points";
 
 /**
  * Returns today's date in YYYY-MM-DD format (UTC).
  */
 function getTodayUtc(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-/**
- * Converts a USD cost to points.
- * 1 point = $0.001, so points = ceil(usdCost * 1000).
- * Returns at least 1 point when cost > 0 to ensure every turn is tracked.
- */
-export function usdToPoints(usdCost: number): number {
-  if (usdCost <= 0) return 0;
-  return Math.max(1, Math.ceil(usdCost * 1000));
 }
 
 /**

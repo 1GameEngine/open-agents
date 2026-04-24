@@ -18,6 +18,7 @@ Hard-won knowledge from building this codebase. When you make a mistake or disco
 
 ## Next.js
 
+- To verify **real AI → daily points deduction → ledger** without clicking the UI, run `bun run --cwd apps/web e2e:points-ai` while `mock:sso` and `web:dev:pglite` are up and `AI_GATEWAY_API_KEY` is set; the script POSTs `/api/sessions`, `/api/sandbox`, `/api/chat`, then polls balance and `/api/points/transactions`.
 - Bun scripts under `apps/web/scripts/` that import `@/lib/points/service` will fail: that module is gated with `server-only` (intended for Route Handlers / Server Components). Import `@/lib/points/service-core` from scripts and keep `service.ts` as a thin `server-only` re-export for app code.
 - In Next.js App Router, dynamic route param names must match the folder segment exactly (e.g. `[sessionId]` requires `params.sessionId`, not `params.id`), or DB queries can receive `undefined` and fail at runtime.
 - Some planning docs still reference legacy `apps/web/app/tasks/[id]/...` paths; current UI/API code is centered on `apps/web/app/sessions/[sessionId]/chats/[chatId]/...`, so verify file paths before implementing plan items.

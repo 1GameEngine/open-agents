@@ -17,7 +17,8 @@
     "db:check": "bun run scripts/check-migrations.ts",
     "workflow:setup": "npx workflow-postgres-setup",
     "bootstrap": "bun run scripts/bootstrap-admin.ts",
-    "seed:points-ledger": "bun run scripts/run-with-env.ts bun run scripts/seed-points-transaction-demo.ts"
+    "seed:points-ledger": "bun run scripts/run-with-env.ts bun run scripts/seed-points-transaction-demo.ts",
+    "e2e:points-ai": "bun run scripts/run-with-env.ts bun run scripts/e2e-points-ai-chat.ts"
   },
   "dependencies": {
     "@ai-sdk/elevenlabs": "^2.0.29",

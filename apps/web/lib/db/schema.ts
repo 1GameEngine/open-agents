@@ -209,7 +209,7 @@ export const chats = pgTable(
       .notNull()
       .references(() => sessions.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
-    modelId: text("model_id").default("moonshotai/kimi-k2.5"),
+    modelId: text("model_id").default("deepseek/deepseek-v4-flash"),
     activeStreamId: text("active_stream_id"),
     lastAssistantMessageAt: timestamp("last_assistant_message_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -371,7 +371,9 @@ export const userPreferences = pgTable("user_preferences", {
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
-  defaultModelId: text("default_model_id").default("moonshotai/kimi-k2.5"),
+  defaultModelId: text("default_model_id").default(
+    "deepseek/deepseek-v4-flash",
+  ),
   defaultSubagentModelId: text("default_subagent_model_id"),
   defaultSandboxType: text("default_sandbox_type", {
     enum: ["local-fs"],

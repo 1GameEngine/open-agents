@@ -24,16 +24,16 @@ describe("allowed-language-models", () => {
 
     expect(
       filterAndOrderAvailableLanguageModels(input).map((m) => m.id),
-    ).toEqual(["moonshotai/kimi-k2.5", "moonshotai/kimi-k2.6"]);
+    ).toEqual(["moonshotai/kimi-k2.6"]);
   });
 
   test("ALLOWED_LANGUAGE_MODEL_IDS matches documented curated set", () => {
     expect([...ALLOWED_LANGUAGE_MODEL_IDS]).toEqual([
-      "moonshotai/kimi-k2.5",
+      "deepseek/deepseek-v4-pro",
+      "deepseek/deepseek-v4-flash",
       "moonshotai/kimi-k2.6",
       "alibaba/qwen3.6-plus",
       "openai/gpt-5.4-mini",
-      "openai/gpt-5.4-nano",
       "openai/gpt-5.3-codex",
       "google/gemini-3.1-flash-lite-preview",
       "google/gemini-3-flash",

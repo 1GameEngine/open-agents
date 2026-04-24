@@ -48,7 +48,7 @@ async function main() {
       id: chatId,
       sessionId,
       title: "Demo chat",
-      modelId: "moonshotai/kimi-k2.5",
+      modelId: "deepseek/deepseek-v4-flash",
     });
 
     await tx.insert(chatMessages).values({
@@ -76,8 +76,8 @@ async function main() {
           },
         ],
         metadata: {
-          selectedModelId: "moonshotai/kimi-k2.5",
-          modelId: "moonshotai/kimi-k2.5",
+          selectedModelId: "deepseek/deepseek-v4-flash",
+          modelId: "deepseek/deepseek-v4-flash",
           totalMessageCost: 0.005,
         },
       },

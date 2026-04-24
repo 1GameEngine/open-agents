@@ -3,6 +3,18 @@ import { getServerSession } from "@/lib/session/get-server-session";
 
 const BBS_BASE_URL = process.env.NEXT_PUBLIC_BBS_BASE_URL;
 const AGENTS_SSO_BASE_URL = process.env.NEXT_PUBLIC_AGENTS_SSO_BASE_URL;
+const MBBS_API_BASE_URL = process.env.MBBS_API_BASE_URL;
+
+function isLocalMockSsoEnabled(): boolean {
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  if (!isDevelopment || !MBBS_API_BASE_URL) {
+    return false;
+  }
+
+  return /^(https?:\/\/)(127\.0\.0\.1|localhost):8840\/main\/?$/i.test(
+    MBBS_API_BASE_URL,
+  );
+}
 
 /**
  * 根路由。
@@ -15,6 +27,11 @@ export default async function Home() {
 
   if (session?.user) {
     redirect("/sessions");
+  }
+
+  if (isLocalMockSsoEnabled()) {
+    // Use relative URL so local browser access works regardless of host/IP.
+    redirect("/api/auth/sso?ticket=local-dev&redirect=/sessions");
   }
 
   // 将自身 SSO 路由地址作为回调传给 1game-server 中转页，

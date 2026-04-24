@@ -18,6 +18,7 @@ Hard-won knowledge from building this codebase. When you make a mistake or disco
 
 ## Next.js
 
+- SSO login sets the self-hosted API key in an **httpOnly** cookie (`oha_self_hosted_api_key`), not in `Authorization`. Route handlers that only called `requireApiKey()` (header-only) returned **401** for browser `fetch("/api/...")` after SSO — for example **POST /api/sessions** could not create sessions. `requireApiKey()` must fall back to that cookie (same source as `getServerSession()`), or the client must always send `Authorization` (e.g. `NEXT_PUBLIC_SELF_HOSTED_API_KEY` patch).
 - In Next.js App Router, dynamic route param names must match the folder segment exactly (e.g. `[sessionId]` requires `params.sessionId`, not `params.id`), or DB queries can receive `undefined` and fail at runtime.
 - Some planning docs still reference legacy `apps/web/app/tasks/[id]/...` paths; current UI/API code is centered on `apps/web/app/sessions/[sessionId]/chats/[chatId]/...`, so verify file paths before implementing plan items.
 - Next.js `after()` defers callbacks until the response is fully sent; for streaming endpoints this means `after()` runs after the entire stream completes, not at call time. Use fire-and-forget (`void run()`) for lifecycle kicks that must happen at request start.

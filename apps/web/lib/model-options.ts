@@ -63,11 +63,11 @@ function toVariantOption(
 
 /** Providers pinned to the top of the list, in order. */
 const PRIORITY_PROVIDERS = [
+  "deepseek",
   "moonshotai",
   "alibaba",
   "openai",
   "google",
-  "deepseek",
   "anthropic",
 ];
 

@@ -1,10 +1,8 @@
-import { SELF_HOSTED_API_KEY_COOKIE_NAME } from "./session/constants";
-
 /**
  * Self-hosted auth uses API keys (Bearer) instead of OAuth cookies.
  * Browser `fetch` calls do not automatically send that header, so when
- * `NEXT_PUBLIC_SELF_HOSTED_API_KEY` is set (local dev only), patch `fetch` to
- * attach `Authorization` for same-origin `/api/*` requests.
+ * `NEXT_PUBLIC_SELF_HOSTED_API_KEY` is set (local dev only), we can opt into
+ * custom fetch behavior for same-origin `/api/*` requests.
  */
 export function installSelfHostedFetch(): void {
   if (typeof window === "undefined") {
@@ -14,16 +12,6 @@ export function installSelfHostedFetch(): void {
   const key = process.env.NEXT_PUBLIC_SELF_HOSTED_API_KEY;
   if (!key) {
     return;
-  }
-
-  // Full-page navigations (RSC) do not send `Authorization`. Mirror the key in
-  // a first-party cookie so `getServerSession()` can authenticate chat pages.
-  const cookieName = SELF_HOSTED_API_KEY_COOKIE_NAME;
-  if (!document.cookie.includes(`${cookieName}=`)) {
-    const encoded = encodeURIComponent(key);
-    // Cookie Store API is not universally available; this is dev-only glue for RSC auth.
-    // eslint-disable-next-line unicorn/no-document-cookie -- mirror API key for server components
-    document.cookie = `${cookieName}=${encoded};path=/;max-age=31536000;samesite=lax`;
   }
 
   const w = window as Window & { __openAgentsFetchPatched?: boolean };
@@ -63,23 +51,10 @@ export function installSelfHostedFetch(): void {
       return originalFetch(input, init);
     }
 
-    const headers = new Headers(
-      init?.headers ?? (input instanceof Request ? input.headers : undefined),
-    );
-    if (!headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${key}`);
-    }
-
-    if (input instanceof Request) {
-      return originalFetch(
-        new Request(input, {
-          ...init,
-          headers,
-        }),
-      );
-    }
-
-    return originalFetch(input, { ...init, headers });
+    // Let route handlers read the SSO/login cookie as source of truth.
+    // We intentionally avoid forcing Authorization here because it can
+    // override the active browser login identity.
+    return originalFetch(input, init);
   }
 
   const extras: Partial<typeof fetch> = {};

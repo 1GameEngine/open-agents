@@ -97,7 +97,7 @@ describe("/api/models context window enrichment", () => {
         context_window: 200_000,
       },
       {
-        id: "moonshotai/kimi-k2.5",
+        id: "moonshotai/kimi-k2.6",
         modelType: "language",
         context_window: 128_000,
       },
@@ -128,7 +128,7 @@ describe("/api/models context window enrichment", () => {
       },
       moonshotai: {
         models: {
-          "kimi-k2.5": {
+          "kimi-k2.6": {
             limit: { context: 256_000 },
           },
         },
@@ -155,11 +155,11 @@ describe("/api/models context window enrichment", () => {
     );
 
     expect(body.models.map((m) => m.id)).toEqual([
-      "moonshotai/kimi-k2.5",
+      "moonshotai/kimi-k2.6",
       "openai/gpt-5.3-codex",
     ]);
     expect(contextById.get("openai/gpt-5.3-codex")).toBe(400_000);
-    expect(contextById.get("moonshotai/kimi-k2.5")).toBe(256_000);
+    expect(contextById.get("moonshotai/kimi-k2.6")).toBe(256_000);
     expect(contextById.has("anthropic/claude-opus-4.6")).toBe(false);
     expect(contextById.has("openai/gpt-4o-mini")).toBe(false);
     expect(contextById.has("openai/image-gen")).toBe(false);
@@ -177,7 +177,7 @@ describe("/api/models context window enrichment", () => {
         modelType: "language",
       },
       {
-        id: "moonshotai/kimi-k2.5",
+        id: "deepseek/deepseek-v4-flash",
         modelType: "language",
       },
     );
@@ -194,7 +194,7 @@ describe("/api/models context window enrichment", () => {
 
     // Curated allowlist applies; Claude models are not hidden by trial logic but are not in the shortlist
     expect(body.models.map((model) => model.id)).toEqual([
-      "moonshotai/kimi-k2.5",
+      "deepseek/deepseek-v4-flash",
     ]);
   });
 

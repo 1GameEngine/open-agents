@@ -182,6 +182,11 @@ Recommended path: deploy this repo at the repo root on Vercel, then layer on aut
    bun run web
    ```
 
+6. If you run inside a cloud VM/container and your desktop browser cannot use
+   `localhost:3000`, open the network host shown in Next.js logs (for example
+   `http://172.30.0.2:3000`). This repo allows that dev origin by default.
+   See `apps/web/README.md` and `SELF-HOST.md` for the detailed local SSO flow.
+
 If you already have a linked Vercel project, you can still pull env vars locally with `vc env pull`, but setup is now intentionally manual so you can see exactly which values matter.
 
 ## OAuth and integration setup

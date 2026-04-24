@@ -67,6 +67,7 @@ const PRIORITY_PROVIDERS = [
   "alibaba",
   "openai",
   "google",
+  "deepseek",
   "anthropic",
 ];
 

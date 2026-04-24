@@ -13,6 +13,8 @@ export const ALLOWED_LANGUAGE_MODEL_IDS: readonly string[] = [
   "openai/gpt-5.3-codex",
   "google/gemini-3.1-flash-lite-preview",
   "google/gemini-3-flash",
+  "deepseek/deepseek-v4-pro",
+  "deepseek/deepseek-v4-flash",
 ];
 
 const allowedSet = new Set(ALLOWED_LANGUAGE_MODEL_IDS);

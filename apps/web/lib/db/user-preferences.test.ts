@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+import { APP_DEFAULT_MODEL_ID } from "@/lib/models";
 
 mock.module("./client", () => ({
   db: {},
@@ -11,7 +12,7 @@ describe("toUserPreferencesData", () => {
     const { toUserPreferencesData } = await userPreferencesModulePromise;
 
     expect(toUserPreferencesData()).toEqual({
-      defaultModelId: "moonshotai/kimi-k2.5",
+      defaultModelId: APP_DEFAULT_MODEL_ID,
       defaultSubagentModelId: null,
       defaultSandboxType: "local-fs",
       defaultDiffMode: "unified",

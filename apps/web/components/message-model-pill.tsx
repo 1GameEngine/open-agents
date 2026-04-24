@@ -114,7 +114,8 @@ export function MessageModelPill({
     Number.isFinite(totalMessageCost) &&
     totalMessageCost >= 0;
 
-  const hasBalance = typeof balance === "number" && typeof dailyMax === "number";
+  const hasBalance =
+    typeof balance === "number" && typeof dailyMax === "number";
 
   // Colour the balance based on remaining ratio
   const balanceRatio = hasBalance ? balance / dailyMax : 1;

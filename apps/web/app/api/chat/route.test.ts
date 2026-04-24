@@ -682,7 +682,11 @@ describe("/api/chat route — points quota", () => {
       autoCreatePrOverride: null,
       sandboxState: { type: "vercel" },
     };
-    chatRecord = { sessionId: "session-1", modelId: null, activeStreamId: null };
+    chatRecord = {
+      sessionId: "session-1",
+      modelId: null,
+      activeStreamId: null,
+    };
   });
 
   test("allows the request when the user has sufficient points", async () => {
@@ -711,7 +715,7 @@ describe("/api/chat route — points quota", () => {
     availablePointsState = 0;
     const { POST } = await routeModulePromise;
     const response = await POST(createValidRequest());
-    const body = await response.json() as { error: string };
+    const body = (await response.json()) as { error: string };
     expect(body.error).toContain("quota");
   });
 

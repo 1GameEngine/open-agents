@@ -1,5 +1,6 @@
 import type { SandboxState } from "@open-harness/sandbox";
 import type { ModelVariant } from "@/lib/model-variants";
+import { DAILY_FREE_POINTS } from "@/lib/points/constants";
 import type { GlobalSkillRef } from "@/lib/skills/global-skill-refs";
 import {
   boolean,
@@ -449,8 +450,7 @@ export const apiKeys = pgTable(
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
 
-// Points system — daily quota per user
-export const DAILY_FREE_POINTS = 10_000;
+// Points system — daily quota per user (value in `@/lib/points/constants`)
 
 // User daily points balance
 export const userPoints = pgTable("user_points", {

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getSessionFromReq } from "@/lib/session/server";
 import { checkAndResetDailyPoints } from "@/lib/points/service";
-import { DAILY_FREE_POINTS } from "@/lib/db/schema";
+import { DAILY_FREE_POINTS } from "@/lib/points/constants";
 
 export interface PointsBalanceResponse {
   balance: number;
@@ -22,9 +22,15 @@ export async function GET(req: NextRequest) {
 
   try {
     const balance = await checkAndResetDailyPoints(session.user.id);
-    return Response.json({ balance, dailyMax: DAILY_FREE_POINTS } satisfies PointsBalanceResponse);
+    return Response.json({
+      balance,
+      dailyMax: DAILY_FREE_POINTS,
+    } satisfies PointsBalanceResponse);
   } catch (error) {
     console.error("[points/balance] Failed to get balance:", error);
-    return Response.json({ error: "Failed to get points balance" }, { status: 500 });
+    return Response.json(
+      { error: "Failed to get points balance" },
+      { status: 500 },
+    );
   }
 }

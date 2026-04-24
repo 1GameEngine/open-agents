@@ -2,11 +2,8 @@ import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db/client";
-import {
-  DAILY_FREE_POINTS,
-  pointTransactions,
-  userPoints,
-} from "@/lib/db/schema";
+import { DAILY_FREE_POINTS } from "@/lib/points/constants";
+import { pointTransactions, userPoints } from "@/lib/db/schema";
 
 /**
  * Returns today's date in YYYY-MM-DD format (UTC).
@@ -93,8 +90,7 @@ export async function deductPoints(params: {
 }): Promise<void> {
   const { userId, sessionId, chatId, modelId, usdCost } = params;
 
-  const costPoints =
-    usdCost !== undefined ? usdToPoints(usdCost) : 1;
+  const costPoints = usdCost !== undefined ? usdToPoints(usdCost) : 1;
 
   if (costPoints === 0) {
     return;

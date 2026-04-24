@@ -10,7 +10,7 @@ interface FakeUserPointsRow {
   dailyPoints: number;
 }
 
-let userPointsStore: Map<string, FakeUserPointsRow> = new Map();
+let userPointsStore = new Map<string, FakeUserPointsRow>();
 const insertedTransactions: unknown[] = [];
 
 /**
@@ -31,23 +31,23 @@ function resolveSqlExpr(expr: unknown, currentValue: number): number {
 mock.module("@/lib/db/client", () => {
   const db = {
     insert: (_table: unknown) => ({
-      values: (row: unknown) => ({
-        // Used by userPoints UPSERT
-        onConflictDoNothing: async () => {
-          const r = row as FakeUserPointsRow;
-          if (!userPointsStore.has(r.userId)) {
-            userPointsStore.set(r.userId, { ...r });
-          }
-        },
-        // Used by pointTransactions insert (awaited directly)
-        then(
-          resolve: (v: undefined) => void,
-          _reject: (e: unknown) => void,
-        ) {
+      values: (row: unknown) => {
+        const r = row as Record<string, unknown>;
+        // point_transactions rows include `type`; user_points rows do not
+        if (typeof r.type === "string") {
           insertedTransactions.push(row);
-          resolve(undefined);
-        },
-      }),
+          return Promise.resolve(undefined);
+        }
+        return {
+          // Used by userPoints UPSERT
+          onConflictDoNothing: async () => {
+            const up = row as FakeUserPointsRow;
+            if (!userPointsStore.has(up.userId)) {
+              userPointsStore.set(up.userId, { ...up });
+            }
+          },
+        };
+      },
     }),
 
     update: (_table: unknown) => ({
@@ -149,11 +149,11 @@ describe("usdToPoints", () => {
   });
 
   test("converts $1.00 to 1000 points", () => {
-    expect(usdToPoints(1.0)).toBe(1000);
+    expect(usdToPoints(1)).toBe(1000);
   });
 
   test("converts $10.00 to 10000 points", () => {
-    expect(usdToPoints(10.0)).toBe(10_000);
+    expect(usdToPoints(10)).toBe(10_000);
   });
 
   test("converts $0.1234 to 124 points (ceil of 123.4)", () => {
@@ -285,13 +285,13 @@ describe("deductPoints", () => {
   test("clamps balance to 0 when cost exceeds remaining points", async () => {
     seedUser("user-1", { dailyPoints: 2 });
     // $1.00 → 1000 pts, balance only 2
-    await deductPoints({ ...baseParams, usdCost: 1.0 });
+    await deductPoints({ ...baseParams, usdCost: 1 });
     expect(userPointsStore.get("user-1")?.dailyPoints).toBe(0);
   });
 
   test("balance never goes negative", async () => {
     seedUser("user-1", { dailyPoints: 1 });
-    await deductPoints({ ...baseParams, usdCost: 5.0 }); // 5000 pts
+    await deductPoints({ ...baseParams, usdCost: 5 }); // 5000 pts
     expect(userPointsStore.get("user-1")?.dailyPoints).toBeGreaterThanOrEqual(
       0,
     );
@@ -299,7 +299,7 @@ describe("deductPoints", () => {
 
   test("deducts $1.00 (1000 pts) from a full 10000-point balance correctly", async () => {
     seedUser("user-1", { dailyPoints: 10_000 });
-    await deductPoints({ ...baseParams, usdCost: 1.0 });
+    await deductPoints({ ...baseParams, usdCost: 1 });
     expect(userPointsStore.get("user-1")?.dailyPoints).toBe(9_000);
   });
 
@@ -369,7 +369,11 @@ describe("deductPoints", () => {
 
   test("transaction record stores the modelId", async () => {
     seedUser("user-1", { dailyPoints: 10_000 });
-    await deductPoints({ ...baseParams, modelId: "anthropic/claude-3", usdCost: 0.002 });
+    await deductPoints({
+      ...baseParams,
+      modelId: "anthropic/claude-3",
+      usdCost: 0.002,
+    });
     const tx = insertedTransactions[0] as Record<string, unknown>;
     expect(tx.modelId).toBe("anthropic/claude-3");
   });

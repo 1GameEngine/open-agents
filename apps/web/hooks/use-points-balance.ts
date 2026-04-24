@@ -1,7 +1,9 @@
 "use client";
 import useSWR from "swr";
-import { fetcher } from "@/lib/swr";
 import type { PointsBalanceResponse } from "@/app/api/points/balance/route";
+import { DAILY_FREE_POINTS } from "@/lib/points/constants";
+import { POINTS_BALANCE_SWR_KEY } from "@/lib/points/swr-key";
+import { fetcher } from "@/lib/swr";
 
 /**
  * Fetches the current user's daily points balance.
@@ -10,7 +12,7 @@ import type { PointsBalanceResponse } from "@/app/api/points/balance/route";
  */
 export function usePointsBalance() {
   const { data, error, isLoading, mutate } = useSWR<PointsBalanceResponse>(
-    "/api/points/balance",
+    POINTS_BALANCE_SWR_KEY,
     fetcher,
     {
       // Revalidate every 30 s so the display stays reasonably fresh.
@@ -22,7 +24,7 @@ export function usePointsBalance() {
 
   return {
     balance: data?.balance ?? null,
-    dailyMax: data?.dailyMax ?? 10000,
+    dailyMax: data?.dailyMax ?? DAILY_FREE_POINTS,
     isLoading,
     error: error ?? null,
     mutate,

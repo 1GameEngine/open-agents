@@ -487,7 +487,11 @@ describe("recordWorkflowUsage — points deduction", () => {
     spies.deductPoints.mockImplementationOnce(() =>
       Promise.reject(new Error("Points DB down")),
     );
-    const usage = makeUsage({ inputTokens: 10, outputTokens: 5, totalTokens: 15 });
+    const usage = makeUsage({
+      inputTokens: 10,
+      outputTokens: 5,
+      totalTokens: 15,
+    });
     await recordWorkflowUsage(
       "user-1",
       "openai/gpt-4o",

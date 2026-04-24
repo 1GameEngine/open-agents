@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Cable,
+  Coins,
   LogOut,
   Menu,
   Settings as SettingsIcon,
@@ -67,6 +68,12 @@ const sidebarItems = [
     label: "Profile",
     href: "/settings/profile",
     icon: User,
+  },
+  {
+    id: "points",
+    label: "Daily points",
+    href: "/settings/points",
+    icon: Coins,
   },
   {
     id: "connections",
@@ -237,6 +244,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <ModelVariantsSectionSkeleton />
     ) : activeItem?.id === "leaderboard" ? (
       <LeaderboardSectionSkeleton />
+    ) : activeItem?.id === "points" ? (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-lg" />
+      </div>
     ) : (
       <ProfilePageSkeleton />
     );

@@ -11,7 +11,10 @@ import {
   getOrCreateChatInstance,
 } from "@/lib/chat-instance-manager";
 import { cleanupChatRouteOnUnmount } from "@/lib/chat-route-cleanup";
-import { POINTS_BALANCE_SWR_KEY } from "@/lib/points/swr-key";
+import {
+  POINTS_BALANCE_SWR_KEY,
+  POINTS_TRANSACTIONS_SWR_KEY,
+} from "@/lib/points/swr-key";
 
 const CHAT_UI_UPDATE_THROTTLE_MS = 75;
 
@@ -118,6 +121,7 @@ export function useSessionChatRuntime({
         return;
       }
       void mutate(POINTS_BALANCE_SWR_KEY);
+      void mutate(POINTS_TRANSACTIONS_SWR_KEY);
     },
     [],
   );

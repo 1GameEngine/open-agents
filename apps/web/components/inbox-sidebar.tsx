@@ -3,6 +3,7 @@
 import {
   Archive,
   ChevronDown,
+  Coins,
   FolderGit2,
   GitBranch,
   GitMerge,
@@ -43,10 +44,12 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLeaderboardRank } from "@/hooks/use-leaderboard-rank";
+import { usePointsBalance } from "@/hooks/use-points-balance";
 import { useSession } from "@/hooks/use-session";
 import type { SessionWithUnread } from "@/hooks/use-sessions";
 import type { Session as AuthSession } from "@/lib/session/types";
 import { formatRelativeTime } from "@/lib/format-relative-time";
+import { DAILY_FREE_POINTS } from "@/lib/points/constants";
 import { getUsageLeaderboardDomain } from "@/lib/usage/leaderboard-domain";
 
 type InboxSidebarProps = {
@@ -657,6 +660,11 @@ export function InboxSidebar({
   const { session } = useSession();
   const { rank: leaderboardRank, loading: leaderboardLoading } =
     useLeaderboardRank();
+  const {
+    balance: pointsBalance,
+    dailyMax: pointsDailyMax,
+    isLoading: pointsBalanceLoading,
+  } = usePointsBalance();
   const { isMobile, setOpenMobile } = useSidebar();
   const [showArchived, setShowArchived] = useState(false);
   const [archivedSessions, setArchivedSessions] = useState<SessionWithUnread[]>(
@@ -1173,6 +1181,25 @@ export function InboxSidebar({
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
+              <Link
+                href="/settings/points"
+                className="mb-1 flex min-w-0 items-center gap-1.5 rounded-md py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Coins className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="truncate tabular-nums">
+                  {pointsBalanceLoading && pointsBalance === null ? (
+                    <span className="inline-block h-3 w-20 animate-pulse rounded bg-muted" />
+                  ) : (
+                    <>
+                      {(pointsBalance ?? 0).toLocaleString("en-US")} /{" "}
+                      {(pointsDailyMax ?? DAILY_FREE_POINTS).toLocaleString(
+                        "en-US",
+                      )}{" "}
+                      pts
+                    </>
+                  )}
+                </span>
+              </Link>
               <p className="truncate text-sm font-semibold leading-none text-foreground">
                 {sidebarUser.username}
               </p>

@@ -34,6 +34,20 @@ function unauthorizedResponse(message: string): ApiKeyAuthFailure {
 }
 
 export async function requireApiKey(): Promise<ApiKeyAuthOutcome> {
+  const cookieStore = await cookies();
+  const cookieApiKey = cookieStore.get(SELF_HOSTED_API_KEY_COOKIE_NAME)?.value;
+  if (cookieApiKey) {
+    const result = await validateApiKey(cookieApiKey);
+    if (result) {
+      return {
+        ok: true,
+        userId: result.userId,
+        username: result.username,
+        authProvider: "api-key" as const,
+      };
+    }
+  }
+
   const headerStore = await headers();
   const authorization = headerStore.get("authorization") ?? "";
 

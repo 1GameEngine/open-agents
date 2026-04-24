@@ -37,6 +37,22 @@ Env loading is automatic at startup (difference override mode):
 
 Open **http://localhost:3000** (or **http://127.0.0.1:3000** — allowed for dev).
 
+### Browser access in Cloud/VM
+
+When running in a remote VM/container, `localhost` in your desktop browser may
+not route to the app process. In that case, use the VM network address shown in
+Next.js startup logs (for example `http://172.30.0.2:3000`).
+
+This repo already allows that origin in dev:
+
+```ts
+// apps/web/next.config.ts
+allowedDevOrigins: ["127.0.0.1", "172.30.0.2"];
+```
+
+If you use a different host, add it to `allowedDevOrigins` and restart
+`bun run web:dev:pglite`.
+
 ### 1game SSO (local mock)
 
 For local debugging without a real 1game-server, run from the **repo root**:
@@ -45,7 +61,16 @@ For local debugging without a real 1game-server, run from the **repo root**:
 bun run mock:sso
 ```
 
-Then set `MBBS_API_BASE_URL=http://127.0.0.1:8840/main` in `apps/web/.env.local` (see `scripts/mock-sso-server.ts` for `MOCK_SSO_USER_ID` and other overrides). Open `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions` with any non-empty `ticket`.
+Then set `MBBS_API_BASE_URL=http://127.0.0.1:8840/main` in `apps/web/.env.local` (see `scripts/mock-sso-server.ts` for `MOCK_SSO_USER_ID` and other overrides).
+
+With this mock config, visiting `/` in development will automatically route to
+the local SSO callback (`/api/auth/sso?ticket=local-dev&redirect=/sessions`) and
+then enter `/sessions`.
+
+You can still test SSO directly by opening:
+
+- `http://localhost:3000/api/auth/sso?ticket=local-dev&redirect=/sessions`
+- or the same path on your VM host (for example `http://172.30.0.2:3000/...`)
 
 ### Verify points deduction + ledger (optional)
 

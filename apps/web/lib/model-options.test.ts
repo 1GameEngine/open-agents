@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { APP_DEFAULT_MODEL_ID } from "@/lib/models";
 import type { ModelVariant } from "@/lib/model-variants";
 import {
   buildModelOptions,
@@ -108,6 +109,13 @@ describe("model options", () => {
   test("groupByProvider puts priority providers first, preserves insertion order", () => {
     const options = [
       {
+        id: "deepseek/deepseek-v4-flash",
+        label: "DeepSeek V4 Flash",
+        shortLabel: "V4 Flash",
+        isVariant: false,
+        provider: "deepseek",
+      },
+      {
         id: "google/gemini-2.5",
         label: "Gemini 2.5",
         shortLabel: "2.5",
@@ -122,9 +130,9 @@ describe("model options", () => {
         provider: "openai",
       },
       {
-        id: "moonshotai/kimi-k2.5",
-        label: "Kimi K2.5",
-        shortLabel: "Kimi K2.5",
+        id: "moonshotai/kimi-k2.6",
+        label: "Kimi K2.6",
+        shortLabel: "Kimi K2.6",
         isVariant: false,
         provider: "moonshotai",
       },
@@ -147,14 +155,15 @@ describe("model options", () => {
     const groups = groupByProvider(options);
 
     expect(groups.map((g) => g.provider)).toEqual([
+      "deepseek",
       "moonshotai",
       "openai",
       "google",
       "anthropic",
     ]);
     // Within anthropic: preserves original order (variant first, base second)
-    expect(groups[3].options[0].id).toBe("variant:opus-custom");
-    expect(groups[3].options[1].id).toBe("anthropic/claude-opus-4.6");
+    expect(groups[4].options[0].id).toBe("variant:opus-custom");
+    expect(groups[4].options[1].id).toBe("anthropic/claude-opus-4.6");
   });
 
   test("withMissingModelOption appends missing variant option", () => {
@@ -211,11 +220,11 @@ describe("model options", () => {
   test("getDefaultModelOptionId prefers repository default model when present", () => {
     const options = [
       {
-        id: "moonshotai/kimi-k2.5",
-        label: "Kimi K2.5",
-        shortLabel: "Kimi K2.5",
+        id: APP_DEFAULT_MODEL_ID,
+        label: "DeepSeek V4 Flash",
+        shortLabel: "V4 Flash",
         isVariant: false,
-        provider: "moonshotai",
+        provider: "deepseek",
       },
       {
         id: "openai/gpt-5",
@@ -226,7 +235,7 @@ describe("model options", () => {
       },
     ];
 
-    expect(getDefaultModelOptionId(options)).toBe("moonshotai/kimi-k2.5");
+    expect(getDefaultModelOptionId(options)).toBe(APP_DEFAULT_MODEL_ID);
   });
 
   test("getDefaultModelOptionId falls back to first option when default is missing", () => {
